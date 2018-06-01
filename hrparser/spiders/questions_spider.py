@@ -15,9 +15,10 @@ class QuestionsSpider(scrapy.Spider):
         num_pages = int(response.css("table.OptionsTable td span::text").extract()[2].strip().split(" ")[1])
 
         # limiter
-        #num_pages = 10
+        start_page = 1
+        #num_pages = 5
 
-        for i in range(1, num_pages + 1):
+        for i in range(start_page, start_page + num_pages):
             form_data = self.validate(response)
             
             # This is how edoc aspx backend works. callback param need to know how much digits has number
@@ -76,6 +77,8 @@ class QuestionsSpider(scrapy.Spider):
 
         link = response.css("#ctl00_ContentPlaceHolder_lnk_PohraniPdf::attr(href)").extract()
 
+        answear = response.css("#ctl00_ContentPlaceHolder_OdgovorFonogram::attr(href)").extract()
+
         yield {'author': author,
                'title': title,
                'ref': ref,
@@ -84,5 +87,7 @@ class QuestionsSpider(scrapy.Spider):
                'recipient': recipient,
                'field': field,
                'signature': signature,
-               'link': link}
+               'link': link,
+               'edoc_url': response.url,
+               'answear': answear}
 
