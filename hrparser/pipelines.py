@@ -18,6 +18,7 @@ from scrapy.exceptions import DropItem
 from .data_parser.vote_parser import BallotsParser
 from .data_parser.speech_parser import SpeechParser
 from .data_parser.question_parser import QuestionParser
+from .data_parser.person_parser import PersonParser
 from .data_parser.utils import get_vote_key, fix_name, name_parser
 # Define your item pipelines here
 #
@@ -112,6 +113,8 @@ class HrparserPipeline(object):
             # TODO create person parser class (like speech, vote...)
             print("PPEPPEL")
             if item['type'] =='mp':
+                PersonParser(item, self)
+                """
                 if item['name'] in self.members.keys():
                     print('pass')
                     pass
@@ -184,6 +187,7 @@ class HrparserPipeline(object):
                         for wb in item['wbs']:
                             wb_id = self.add_organization(wb['org'], 'odbor')
                             self.add_membership(person_id, wb_id, wb['role'], wb['role'], self.mandate_start_time.isoformat())
+                """
 
         elif type(spider) == SpeechSpider:
             print("spic_spider")

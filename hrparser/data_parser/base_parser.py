@@ -35,7 +35,7 @@ class BaseParser(object):
         return self.api_request('agenda-items/', 'agenda_items', value_key, json_data)
 
 
-    def get_or_add_person(self, name, districts=None, mandates=None, education=None):
+    def get_or_add_person(self, name, districts=None, mandates=None, education=None, birth_date=None):
         person_id = self.get_person_id(name)
         if not person_id:
             person_data = {
@@ -48,6 +48,8 @@ class BaseParser(object):
                 person_data['mandates'] = mandates
             if education:
                 person_data['education'] = education
+            if birth_date:
+                person_data['birth_date'] = birth_date
             print('Adding person', person_data)
             response = requests.post(
                 API_URL + 'persons/',
@@ -72,6 +74,9 @@ class BaseParser(object):
 
     def add_or_get_motion(self, value_key, json_data):
         return self.api_request('motions/', 'motions', value_key, json_data)
+
+    def add_or_get_area(self, value_key, json_data):
+        return self.api_request('areas/', 'areas', value_key, json_data)
 
     def add_or_get_vote(self, value_key, json_data):
         return  self.api_request('votes/', 'votes', value_key, json_data)
@@ -166,3 +171,15 @@ class BaseParser(object):
                 return None
 
         return party_id
+
+    def add_membership(self, person_id, party_id, role, label, start_time):
+        response = requests.post(API_URL + 'memberships/',
+                                 json={"person": person_id,
+                                       "organization": party_id,
+                                       "role": role,
+                                       "label": label,
+                                       "start_time": start_time},
+                                 auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
+                                )
+        membership_id = response.json()['id']
+        return membership_id
