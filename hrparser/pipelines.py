@@ -5,6 +5,7 @@ from hrparser.spiders.people_spider import PeopleSpider
 from hrparser.spiders.speeches_spider import SpeechSpider
 from hrparser.spiders.votes_spider import VotesSpider
 from hrparser.spiders.questions_spider import QuestionsSpider
+from hrparser.spiders.act_spider import ActSpider
 
 from datetime import datetime
 
@@ -19,13 +20,55 @@ from .data_parser.vote_parser import BallotsParser
 from .data_parser.speech_parser import SpeechParser
 from .data_parser.question_parser import QuestionParser
 from .data_parser.person_parser import PersonParser
-from .data_parser.utils import get_vote_key, fix_name, name_parser
+from .data_parser.act_parser import ActParser
+from .data_parser.utils import get_vote_key, fix_name, get_person_id
 # Define your item pipelines here
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html travnja
 
 COMMONS_ID = 199
+
+import scrapy
+from scrapy.pipelines.images import ImagesPipeline
+from scrapy.exceptions import DropItem
+
+class ImagesPipeline(ImagesPipeline):
+    members = {}
+    def __init__(self, *args, **kwargs):
+        super(ImagesPipeline, self).__init__(*args, **kwargs)
+        print('imgs pipeline getMembers')
+        mps = getDataFromPagerApiDRF(API_URL + 'persons')
+        for mp in mps:
+            self.members[mp['name_parser']] = mp['id']
+
+        print(self.members)
+
+    def file_path(self, request, response=None, info=None):
+        print("fajl path")
+        print(fix_name(request.meta['name']), 'file-path')
+        image_guid = str(get_person_id(self.members, fix_name(request.meta['name']))) + '.jpeg'
+        print(image_guid)
+        #log.msg(image_guid, level=log.DEBUG)
+        return image_guid
+
+    def get_media_requests(self, item, info):
+        print("get media")
+        if 'img' in item.keys():
+            print('http://www.sabor.hr/' + item['img'])
+            yield scrapy.Request('http://www.sabor.hr/' + item['img'], meta=item)
+        else:
+            return
+
+    def item_completed(self, results, item, info):
+        print("item compelte")
+        print(results)
+        image_paths = [x['path'] for ok, x in results if ok]
+        if not image_paths:
+            raise DropItem("Item contains no images")
+        item['image_paths'] = image_paths
+        return item
+
 
 class HrparserPipeline(object):
     value = 0
@@ -48,6 +91,7 @@ class HrparserPipeline(object):
     votes = {}
     votes_dates = {}
     questions = {}
+    acts = {}
 
     mandate_start_time = datetime(day=14, month=10, year=2016)
 
@@ -104,6 +148,11 @@ class HrparserPipeline(object):
         items = getDataFromPagerApiDRF(API_URL + 'questions')
         for item in items:
             self.questions[item['signature']] = item['id']
+
+        print('pipeline get acts items')
+        items = getDataFromPagerApiDRF(API_URL + 'law')
+        for item in items:
+            self.acts[item['epa']] = {'id': item['id'], 'ended': item['procedure_ended']}
 
         print('PIPELINE is READY')
 
@@ -199,6 +248,8 @@ class HrparserPipeline(object):
 
         elif type(spider) == QuestionsSpider:
             QuestionParser(item, self)
+        elif type(spider) == ActSpider:
+            ActParser(item, self)
         else:
             print("else")
             return item

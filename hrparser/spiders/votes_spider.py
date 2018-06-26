@@ -5,6 +5,12 @@ from datetime import datetime
 class VotesSpider(scrapy.Spider):
     name = 'votes'
 
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'ukparser.pipelines.HrparserPipeline': 1
+        }
+    }   
+
     start_urls = [
         'http://www.sabor.hr/arhiva-dnevnih-redova-9',
         ]

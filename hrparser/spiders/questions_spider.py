@@ -7,6 +7,12 @@ from datetime import datetime
 class QuestionsSpider(scrapy.Spider):
     name = 'questions'
 
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'hrparser.pipelines.HrparserPipeline': 1
+        }
+    }
+
     start_urls = [
         'http://edoc.sabor.hr/ZastupnickaPitanja.aspx',
         ]

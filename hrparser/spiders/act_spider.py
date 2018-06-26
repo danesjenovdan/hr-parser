@@ -6,6 +6,11 @@ from datetime import datetime
 
 class ActSpider(scrapy.Spider):
     name = 'acts'
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'hrparser.pipelines.HrparserPipeline': 1
+        }
+    }
 
     start_urls = [
         'http://edoc.sabor.hr/Akti.aspx',
@@ -18,6 +23,7 @@ class ActSpider(scrapy.Spider):
         #num_pages = 10
 
         for i in range(1, num_pages + 1):
+            print("PAGE: ", i)
             form_data = self.validate(response)
             
             # This is how edoc aspx backend works. callback param need to know how much digits has number
@@ -28,8 +34,6 @@ class ActSpider(scrapy.Spider):
                 'ctl00$ContentPlaceHolder$gvAkti$PagerBarB$GotoBox': str(i),
                 '__CALLBACKID': 'ctl00$ContentPlaceHolder$gvAkti',
                 '__CALLBACKPARAM': callback_param,
-                #'ctl00$ContentPlaceHolder$navFilter': '{&quot;selectedItemIndexPath&quot;:&quot;&quot;,&quot;groupsExpanding&quot;:&quot;0;0;0&quot;}',
-                #'ctl00$ContentPlaceHolder$rbtnTraziPo': '0',
             })
             yield scrapy.FormRequest(url='http://edoc.sabor.hr/Akti.aspx',
                                      formdata=form_data,
@@ -80,6 +84,8 @@ class ActSpider(scrapy.Spider):
 
         pdf = response.css("#ctl00_ContentPlaceHolder_ctrlAktView_lnk_PohraniPdf::attr(href)").extract()
 
+        status = response.css("#ctl00_ContentPlaceHolder_ctrlAktView_pnlCitanje0_ctl01_lblStatus *::text").extract()
+
         yield {'title': title,
                'mdt': mdt,
                'ref_ses': ref_ses,
@@ -91,6 +97,7 @@ class ActSpider(scrapy.Spider):
                'ballots': ballots,
                'result': result,
                'pub_title': pub_title,
-               'pdf': pdf}
+               'pdf': pdf,
+               'status': status}
         
         

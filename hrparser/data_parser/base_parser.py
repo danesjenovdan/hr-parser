@@ -149,25 +149,28 @@ class BaseParser(object):
                     return self.reference.parties[key]
         return None
 
-    def add_organization(self, name, classification):
+    def add_organization(self, name, classification, create_if_not_exist=True):
         party_id = self.get_organization_id(name)
 
         if not party_id:
-            print("ADDING ORG " + name)
-            response = requests.post(API_URL + 'organizations/',
-                                     json={"_name": name.strip(),
-                                           "name": name.strip(),
-                                           "name_parser": name.strip(),
-                                           "_acronym": name[:100],
-                                           "classification": classification},
-                                     auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
-                                    )
-            
-            try:
-                party_id = response.json()['id']
-                self.reference.parties[name.strip()] = party_id
-            except Exception as e:
-                print(e, response.json())
+            if create_if_not_exist:
+                print("ADDING ORG " + name)
+                response = requests.post(API_URL + 'organizations/',
+                                         json={"_name": name.strip(),
+                                               "name": name.strip(),
+                                               "name_parser": name.strip(),
+                                               "_acronym": name[:100],
+                                               "classification": classification},
+                                         auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
+                                        )
+                
+                try:
+                    party_id = response.json()['id']
+                    self.reference.parties[name.strip()] = party_id
+                except Exception as e:
+                    print(e, response.json())
+                    return None
+            else:
                 return None
 
         return party_id

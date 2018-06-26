@@ -5,6 +5,13 @@ from datetime import datetime
 class PeopleSpider(scrapy.Spider):
     name = 'people'
 
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'hrparser.pipelines.HrparserPipeline': 1
+            #'hrparser.pipelines.ImagesPipeline': 2
+        }
+    }
+
     start_urls = [
         'http://www.sabor.hr/zastupnici-9',
         ]

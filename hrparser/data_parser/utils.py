@@ -1,4 +1,5 @@
 from datetime import datetime
+import editdistance
 
 def get_vote_key(name, date):
     return (name + date).strip()
@@ -31,3 +32,10 @@ def parse_month(month_str):
         if month_str.lower().startswith(month):
             return i + 1
     return None
+
+def get_person_id(members, name):
+        for key in members.keys():
+            for parser_name in key.split(','):
+                if editdistance.eval(name, parser_name) < 3:
+                    return members[key]
+        return None
