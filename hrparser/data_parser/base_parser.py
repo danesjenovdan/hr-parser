@@ -68,7 +68,7 @@ class BaseParser(object):
     def get_person_id(self, name):
         for key in self.reference.members.keys():
             for parser_name in key.split(','):
-                if editdistance.eval(name, parser_name) < 3:
+                if editdistance.eval(name, parser_name) < 1:
                     return self.reference.members[key]
         return None
 
@@ -85,8 +85,7 @@ class BaseParser(object):
         return  self.api_request('questions/', 'questions', value_key, json_data)
 
     def add_link(self, json_data):
-        n_item = len(getattr(self.reference, 'links'))
-        return  self.api_request('links/', 'links', str(n_item+1), json_data)
+        return  self.api_request('links/', 'links', json_data['url'], json_data)
 
     def add_ballot(self, voter, vote, option, party=None):
         json_data ={
@@ -145,7 +144,7 @@ class BaseParser(object):
             for parser_name in key.split('|'):
                 #if p:
                 #    print(parser_name, editdistance.eval(name, parser_name))
-                if editdistance.eval(name, parser_name) < 3:
+                if editdistance.eval(name, parser_name) < 1:
                     return self.reference.parties[key]
         return None
 

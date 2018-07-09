@@ -7,7 +7,7 @@ class VotesSpider(scrapy.Spider):
 
     custom_settings = {
         'ITEM_PIPELINES': {
-            'ukparser.pipelines.HrparserPipeline': 1
+            'hrparser.pipelines.HrparserPipeline': 1
         }
     }   
 
@@ -54,6 +54,12 @@ class VotesSpider(scrapy.Spider):
 
         ballots_link = list(set(ballots_link))
 
+        docs = []
+        raw_docs = response.css("td.ArticleLinks")
+        for doc in raw_docs:
+            docs.append({'url': doc.css("a::attr(href)").extract()[0],
+                         'text': doc.css("a span::text").extract()[0]})
+
         #TODO
 
         title = response.css("td.ArticleHeading span::text").extract()
@@ -70,7 +76,8 @@ class VotesSpider(scrapy.Spider):
         data = {'title': title,
                 'results_data': result_and_data,
                 'type': 'vote',
-                'url': response.url}
+                'url': response.url,
+                'docs': docs}
 
         if ballots_link:
             for link in ballots_link:

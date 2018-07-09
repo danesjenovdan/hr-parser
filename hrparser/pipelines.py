@@ -163,81 +163,6 @@ class HrparserPipeline(object):
             print("PPEPPEL")
             if item['type'] =='mp':
                 PersonParser(item, self)
-                """
-                if item['name'] in self.members.keys():
-                    print('pass')
-                    pass
-                else:
-                    if 'area' in item.keys():
-                        if item['area'] in self.areas.keys(): 
-                            area_id = self.areas[item['area']]
-                        else:
-                            response = requests.post(API_URL + 'areas/',
-                                                 json={"name": item['area'],
-                                                       "calssification": "okraj"},
-                                                 auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
-                                                )
-                            print(response.content)
-                            area_id = response.json()['id']
-                            self.areas[item['area']] = area_id
-                    else:
-                        area_id = None
-
-                    try:
-                        birth_date = parse_date(item['birth_date']).isoformat()
-                    except:
-                        birth_date = None
-                    try:
-                        start_time = parse_date(item['start_time']).isoformat()
-                    except:
-                        start_time = self.mandate_start_time.isoformat()
-
-                    if 'num_of_prev_mandates' in item.keys():
-                        num_mandates = int(item['num_of_prev_mandates']) + 1
-                    else:
-                        num_mandates = 1
-
-                    edu = parse_edu(item['education'])
-
-                    if area_id:
-                        area = [area_id]
-                    else:
-                        area = []
-
-                    person_data = {'name': fix_name(item['name']),
-                                   'name_parser': item['name'],
-                                   'districts': area,
-                                   'mandates': num_mandates,
-                                   'education': edu}
-                    if birth_date:
-                        person_data.update({'birth_date': birth_date,})
-
-                    response = requests.post(API_URL + 'persons/',
-                                             json=person_data,
-                                             auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
-                                            )
-                    try:
-                        person_id = response.json()['id']
-                    except:
-                        print("PEEEEPL FEJL:   ", response.json())
-                        print({'name': fix_name(item['name']),
-                               'name_parser': item['name'],
-                               'districts': [area_id],
-                               'birth_date': birth_date,
-                               'mandates': num_mandates,
-                               'education': edu})
-
-                    # get or add party
-                    party_id = self.add_organization(item['party'], "poslanska skupina")
-
-                    membership_id = self.add_membership(person_id, party_id, 'clan', 'cl', start_time)
-
-                    if 'wbs' in item.keys():
-                        for wb in item['wbs']:
-                            wb_id = self.add_organization(wb['org'], 'odbor')
-                            self.add_membership(person_id, wb_id, wb['role'], wb['role'], self.mandate_start_time.isoformat())
-                """
-
         elif type(spider) == SpeechSpider:
             print("spic_spider")
             SpeechParser(item, self)
@@ -376,38 +301,9 @@ def getDataFromPagerApiDRF(url):
     data = []
     end = False
     page = 1
+    url = url+'?limit=300'
     while url:
         response = requests.get(url, auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])).json()
         data += response['results']
         url = response['next']
     return data
-
-
-def parse_month(month_str):
-    months = ['sije', 'velj', 'ožuj', 'trav', 'svib', 'lip', 'srp', 'kolov', 'ruj', 'listop', 'studen', 'prosin']
-    for i, month in enumerate(months):
-        if month_str.lower().startswith(month):
-            return i + 1
-    return None
-
-def parse_date(input_data):
-    # "birth_date": ["28.", "sije\u010dnja", "1977"]
-    # "14. listopada 2016."
-    if type(input_data) == str:
-        input_data = input_data.split(' ')
-
-    day = int(float(input_data[0]))
-    month = parse_month(input_data[1])
-    year = int(float(input_data[2]))
-    return datetime(day=day, month=month, year=year)
-
-def parse_edu(data):
-    # {"e": [" Zavr\u0161io Gimnaziju \"M", " A", " Reljkovi\u0107\" u Vinkovcima (SSS - kulturno-umjetni\u010dki smjer)"]},
-
-    splited = ' '.join(data).split('(')
-    if len(splited) > 1:
-        out = splited[1].split(')')[0]
-        print(out) 
-        return out
-    print("EDUJEHSN; ", data)
-    return ''

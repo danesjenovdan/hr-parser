@@ -5,6 +5,8 @@ from ..settings import API_URL, API_AUTH, API_DATE_FORMAT
 
 from datetime import datetime
 
+import requests
+
 class BallotsParser(BaseParser):
     """
     {"results": "Ukupno: 101. Za: 96. Suzdr\u017ean: 2. Protiv: 3.",
@@ -25,6 +27,7 @@ class BallotsParser(BaseParser):
         self.title = data['title']
         self.ballots = data['ballots']
         self.url = data['url']
+        self.docs = data['docs']
 
         # prepere dictionarys for setters
         self.session = {
@@ -63,6 +66,11 @@ class BallotsParser(BaseParser):
             )
             print(response.status_code)
             """
+            # TODO Delete this. Is here just for reparse ballots.
+
+            self.set_fixed_data()
+            self.parse_results()
+            self.set_docs()
         else:
             # add new motion
             self.set_fixed_data()
@@ -202,7 +210,7 @@ class BallotsParser(BaseParser):
             members_on_vote.append(member)
 
         date_f = dt= datetime.strptime(self.reference.votes_dates[vote], "%Y-%m-%dT%H:%M:%S")
-        mps = requests.get(API_URL + 'getMPs/' + date_f.strftime(API_DATE_FORMAT)).json()
+        mps = requests.get(API_URL + 'getMPs/' + date_f.strftime(API_DATE_FORMAT + 'T%H:%M')).json()
         for mp in mps:
             if mp['id'] not in members_on_vote:
                 temp ={
@@ -223,8 +231,20 @@ class BallotsParser(BaseParser):
             self.motion
         )
         self.vote['motion'] = motion_id
-        vote_id, vote_status = self.add_or_get_vote(self.vote['name'], self.vote)
+        vote_key = get_vote_key(self.vote['name'], self.vote['start_time'])
+        vote_id, vote_status = self.add_or_get_vote(vote_key, self.vote)
 
         if not vote_id in self.reference.votes_dates.keys():
             self.reference.votes_dates[vote_id] = self.time_f.isoformat()
         self.parse_ballots(vote_id)
+
+    def set_docs(self):
+        motion_id, motion_status = self.add_or_get_motion(
+            self.url,
+            self.motion
+        )
+        for doc in self.docs:
+            data = {'url': 'http://www.sabor.hr'+doc['url'],
+                    'name': doc['text'],
+                    'motion': motion_id}
+            self.add_link(data)
