@@ -81,6 +81,7 @@ class HrparserPipeline(object):
     areas = {}
     agenda_items = {}
     orgs = {}
+    klubovi = {}
     
     added_session = {}
     added_votes = {}
@@ -108,6 +109,9 @@ class HrparserPipeline(object):
             self.orgs[pg['name_parser']] = pg['id']
             if pg['classification'] == 'poslanska skupina' or pg['classification'] == 'vlada' :
                 self.parties[pg['name_parser']] = pg['id']
+
+            if pg['classification'] == 'klub':
+                self.klubovi[pg['id']] = pg['_name']
 
         print(self.parties)
 
@@ -152,7 +156,7 @@ class HrparserPipeline(object):
         print('pipeline get acts items')
         items = getDataFromPagerApiDRF(API_URL + 'law')
         for item in items:
-            self.acts[item['epa']] = {'id': item['id'], 'ended': item['procedure_ended']}
+            self.acts[item['uid']] = {'id': item['id'], 'ended': item['procedure_ended']}
 
         print('PIPELINE is READY')
 
@@ -168,15 +172,33 @@ class HrparserPipeline(object):
             SpeechParser(item, self)
 
         elif type(spider) == VotesSpider:
-            if item['type'] == 'vote_ballots':
-                BallotsParser(item, self)
+            BallotsParser(item, self)
 
         elif type(spider) == QuestionsSpider:
             QuestionParser(item, self)
         elif type(spider) == ActSpider:
             ActParser(item, self)
         else:
-            print("else")
+            for party_id, klub in self.klubovi.items():
+                if klub == item['name']:
+                    for g in item['groups']:
+                        role = g['role'].replace(':', '').lower()
+                        for prson in g['members']:
+                            name = ' '.join(reversed(prson.split(', '))).strip()
+                            replace_str = ['prof. dr. sc.', 'doc. dr. sc.', 'univ. spec.', 'dr. sc.', 'mr. sc.', 'akademik']
+                            for rep in replace_str:
+                                if rep in name:
+                                    name = name.replace(rep, '').strip()
+
+                            person_id = get_person_id(self.members, name)
+                            if person_id:
+                                #pass
+                                self.add_membership(person_id, party_id, role, 'cl', self.mandate_start_time.isoformat())
+                            else:
+                                print("FAILLL, nisem najdu", prson, '|'+name+'|')
+                    break
+                    
+
             return item
     # GET OR ADD
 
@@ -307,3 +329,5 @@ def getDataFromPagerApiDRF(url):
         data += response['results']
         url = response['next']
     return data
+
+

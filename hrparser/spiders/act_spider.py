@@ -62,29 +62,41 @@ class ActSpider(scrapy.Spider):
             logging.error("FAIL " + response.meta["page"] + " " + response.meta["calback"])
         for i in items:
             row = i.css("td>a::attr(href)").extract()
+            reading = (''.join(i.css("td")[4].css("::text").extract())).strip(' \\t\\n\\r')
             url = 'http://edoc.sabor.hr/' + row[4][2:-2]
             #print(url)
-            yield scrapy.Request(url=url, callback=self.parse_acts)
+            yield scrapy.Request(url=url, callback=self.parse_acts, meta={'reading': reading})
 
 
     def parse_acts(self, response):
-        title = response.css("#ctl00_ContentPlaceHolder_ctrlAktView_pnlCitanje0_ctl01_lnkNazivAktaUProceduri *::text").extract()
-        mdt = response.css("#ctl00_ContentPlaceHolder_ctrlAktView_pnlCitanje0_ctl01_lblPredlagatelj *::text").extract()
-        ref_ses = response.css("#ctl00_ContentPlaceHolder_ctrlAktView_pnlCitanje0_ctl01_lnkSazivSjednica *::text").extract()
-        dates = response.css("#ctl00_ContentPlaceHolder_ctrlAktView_pnlCitanje0_ctl01_lblRasprava *::text").extract()
-        date_vote = response.css(".datumGlasovanja *::text").extract()
-        signature = response.css("#ctl00_ContentPlaceHolder_ctrlAktView_pnlCitanje0_ctl01_lblSignatura *::text").extract()
+        reading = response.meta['reading']
+        tab = '0'
+        if reading == '2.':
+            tab = '1'
 
-        agenda_no = response.css("#ctl00_ContentPlaceHolder_ctrlAktView_pnlCitanje0_ctl01_lblTockaDnevnogReda *::text").extract()
-        voting = response.css("#ctl00_ContentPlaceHolder_ctrlAktView_pnlCitanje0_ctl01_lblNacinIzglasavanja *::text").extract()
-        ballots = response.css("#ctl00_ContentPlaceHolder_ctrlAktView_pnlCitanje0_ctl01_lblZaProtivSuzdrano *::text").extract()
-        result = response.css("#ctl00_ContentPlaceHolder_ctrlAktView_pnlCitanje0_ctl01_lblZaProtivSuzdrano *::text").extract()
+        tab_id = "#ctl00_ContentPlaceHolder_ctrlAktView_pnlCitanje" + tab +"_ctl01"
+        print(response.meta, tab_id)
+
+        title = response.css(tab_id + "_lnkNazivAktaUProceduri *::text").extract()
+        mdt = response.css(tab_id + "_lblPredlagatelj *::text").extract()
+        ref_ses = response.css(tab_id + "_lnkSazivSjednica *::text").extract()
+        dates = response.css(tab_id + "_lblRasprava *::text").extract()
+        date_vote = response.css(tab_id + "_lblDatum *::text").extract()
+        signature = response.css(tab_id + "_lblSignatura *::text").extract()
+
+        agenda_no = response.css(tab_id + "_lblTockaDnevnogReda *::text").extract()
+        voting = response.css(tab_id + "_lblNacinIzglasavanja *::text").extract()
+        ballots = response.css(tab_id + "_lblZaProtivSuzdrano *::text").extract()
+        result = response.css(tab_id + "_lblZaProtivSuzdrano *::text").extract()
 
         pub_title = response.css("#ctl00_ContentPlaceHolder_ctrlAktView_pnlObjava1_ctl01_lblNazivObjavljenogAkta *::text").extract()
 
         pdf = response.css("#ctl00_ContentPlaceHolder_ctrlAktView_lnk_PohraniPdf::attr(href)").extract()
 
-        status = response.css("#ctl00_ContentPlaceHolder_ctrlAktView_pnlCitanje0_ctl01_lblStatus *::text").extract()
+        status = response.css(tab_id + "_lblStatus *::text").extract()
+
+        epa = response.css("#ctl00_ContentPlaceHolder_ctrlAktView_glava_lblBrojPrijedloga::text").extract()
+        uid = response.url.split("id=")[1]
 
         yield {'title': title,
                'mdt': mdt,
@@ -98,6 +110,8 @@ class ActSpider(scrapy.Spider):
                'result': result,
                'pub_title': pub_title,
                'pdf': pdf,
-               'status': status}
+               'status': status,
+               'epa': epa,
+               'uid': uid}
         
         

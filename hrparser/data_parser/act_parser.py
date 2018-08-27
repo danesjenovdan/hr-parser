@@ -7,6 +7,18 @@ from datetime import datetime
 from requests.auth import HTTPBasicAuth
 import requests
 
+
+options_map = {
+    'donesen': 'enacted',
+    'dostavljeno radi informiranja': 'submitted',
+    'odbijen': 'rejected',
+    'povučen': 'retracted',
+    'prihvaćen': 'adopted',
+    'prima se na znanje': 'received',
+    'u proceduri': 'in_procedure',
+}
+
+
 class ActParser(BaseParser):
     def __init__(self, data, reference):
         """
@@ -50,6 +62,8 @@ class ActParser(BaseParser):
         self.results = data['result'][0]
         self.pdf = data['pdf'][0]
         self.status = data['status'][0]
+        self.epa = data['epa'][0] if data['epa'] else None 
+        self.uid = data['uid']
         try:
             self.voting = data['voting'][0]
         except:
@@ -68,7 +82,7 @@ class ActParser(BaseParser):
         if act_api_status == 'unknown':
             self.parse_data()
             #print(self.act)
-            self.add_act(self.signature, self.act)
+            self.add_act(self.uid, self.act)
         elif act_api_status == 'in process':
             # TODO compare and edit
             self.parse_data()
@@ -83,8 +97,9 @@ class ActParser(BaseParser):
         self.act['session'] = session_id
         self.act['text'] = self.title
         self.act['mdt'] = self.mdt
-        self.act['status'] = self.status
-        self.act['epa'] = self.signature
+        self.act['epa'] = self.epa
+        self.act['uid'] = self.uid
+        self.act['classification'] = 'zakon' if self.epa else 'akt' 
 
         #if 'Vlada HR' in self.mdt:
         #    self.mdt = self.mdt.replace('HR')
@@ -92,30 +107,43 @@ class ActParser(BaseParser):
         mdt_fk = self.add_organization(self.mdt.strip(), '', create_if_not_exist=False)
         self.act['mdt_fk'] = mdt_fk
         self.act['procedure_phase'] = self.status
-
-        self.act['classification'] = 'akt'
-
-        options = {
-            'odbijen': '0',
-            'prihvaćen': '1',
-            'donesen': '1',
-            'prima se na znanje': '2',
+        """
+        statuses = {
+            'odbijen': 'end_of_hearing',
+            'prihvaćen': 'under_consideration',
+            'donesen': 'end_of_hearing',
+            'prima se na znanje': 'end_of_hearing',
             }
+        """
 
         try:
-            self.act['result'] = options[self.status]
+            self.act['status'] = options_map[self.status]
+        except:
+            self.act['status'] = 'under_consideration'
+
+        self.act['procedure_phase'] = self.status
+        """
+        options = {
+            'odbijen': 'rejected',
+            'prihvaćen': None,
+            'donesen': 'accepted',
+            'prima se na znanje': 'accepted',
+            }
+        """
+        try:
+            self.act['result'] = options_map[self.status]
         except:
             self.act['result'] = ''
 
-        if self.act['result'] in ['0', '1']:
+        if self.act['result'] in ['accepted', 'rejected']:
             self.act['procedure_ended'] = True
 
         self.act['date'] = self.date.isoformat()
         self.act['procedure'] = self.voting
 
     def act_status(self):
-        if self.signature.strip() in self.reference.acts.keys():
-            act = self.reference.acts[self.signature]
+        if self.uid.strip() in self.reference.acts.keys():
+            act = self.reference.acts[self.uid]
             if act['ended']:
                 return 'ended'
             else:
@@ -124,13 +152,13 @@ class ActParser(BaseParser):
             return 'unknown'
 
 
-    def add_act(self, signature, json_data):
-        act_id, method = self.api_request('law/', 'acts', signature, json_data)
+    def add_act(self, uid, json_data):
+        act_id, method = self.api_request('law/', 'acts', uid, json_data)
         if 'procedure_ended' in json_data.keys():
             ended = True
         else:
             ended = False
-        self.reference.acts[signature] = {"id": act_id, "ended": ended}
+        self.reference.acts[uid] = {"id": act_id, "ended": ended}
 
 
 

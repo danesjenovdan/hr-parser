@@ -6,7 +6,8 @@ from ..settings import API_URL, API_AUTH, API_DATE_FORMAT
 from datetime import datetime
 
 import requests
-
+import re
+import json
 class BallotsParser(BaseParser):
     """
     {"results": "Ukupno: 101. Za: 96. Suzdr\u017ean: 2. Protiv: 3.",
@@ -15,17 +16,25 @@ class BallotsParser(BaseParser):
      "title": "KONA\u010cNI PRIJEDLOG ZAKONA O POTVR\u0110IVANJU PROTOKOLA UZ SJEVERNOATLANTSKI UGOVOR O PRISTUPANJU CRNE GORE, hitni postupak, prvo i drugo \u010ditanje, P.Z. br. 31",
      "type": "vote_ballots",
      "ballots": [{"voter": "Aleksi\u0107 Goran", "option": "+"}, {"voter": "Ambru\u0161ec Ljubica", "option": "+"}, {"voter": "Anu\u0161i\u0107 Ivan", "option": "+"}, {"voter": "Ba\u010di\u0107 Branko", "option": "+"}, {"voter": "Bali\u0107 Marijana", "option": "+"}, {"voter": "Bari\u0161i\u0107 Dra\u017een", "option": "+"}, {"voter": "Batini\u0107 Milorad", "option": "+"}, {"voter": "Bedekovi\u0107 Vesna", "option": "+"}, {"voter": "Beus Richembergh Goran", "option": "+"}, {"voter": "Bilek Vladimir", "option": "+"}, {"voter": "Boban Bla\u017eenko", "option": "+"}, {"voter": "Bori\u0107 Josip", "option": "+"}, {"voter": "Bo\u0161njakovi\u0107 Dra\u017een", "option": "+"}, {"voter": "Brki\u0107 Milijan", "option": "+"}, {"voter": "Bulj Miro", "option": "+"}, {"voter": "Bunjac Branimir", "option": "-"}, {"voter": "Buri\u0107 Majda", "option": "+"}, {"voter": "Culej Stevo", "option": "+"}, {"voter": "\u010ci\u010dak Mato", "option": "+"}, {"voter": "\u0106eli\u0107 Ivan", "option": "+"}, {"voter": "\u0106osi\u0107 Pero", "option": "+"}, {"voter": "Dodig Goran", "option": "+"}, {"voter": "\u0110aki\u0107 Josip", "option": "+"}, {"voter": "Esih Bruna", "option": "+"}, {"voter": "Felak Damir", "option": "+"}, {"voter": "Frankovi\u0107 Mato", "option": "+"}, {"voter": "Glasnovi\u0107 \u017deljko", "option": "o"}, {"voter": "Glasovac Sabina", "option": "+"}, {"voter": "Grmoja Nikola", "option": "+"}, {"voter": "Hajdukovi\u0107 Domagoj", "option": "+"}, {"voter": "Hasanbegovi\u0107 Zlatko", "option": "+"}, {"voter": "Horvat Darko", "option": "+"}, {"voter": "Hrg Branko", "option": "+"}, {"voter": "Jandrokovi\u0107 Gordan", "option": "+"}, {"voter": "Jankovics R\u00f3bert", "option": "+"}, {"voter": "Jeli\u0107 Damir", "option": "+"}, {"voter": "Jelkovac Marija", "option": "+"}, {"voter": "Josi\u0107 \u017deljka", "option": "+"}, {"voter": "Jovanovi\u0107 \u017deljko", "option": "+"}, {"voter": "Juri\u010dev-Martin\u010dev Branka", "option": "+"}, {"voter": "Kajtazi Veljko", "option": "+"}, {"voter": "Karli\u0107 Mladen", "option": "+"}, {"voter": "Kirin Ivan", "option": "+"}, {"voter": "Klari\u0107 Tomislav", "option": "+"}, {"voter": "Kliman Anton", "option": "+"}, {"voter": "Klisovi\u0107 Jo\u0161ko", "option": "+"}, {"voter": "Kosor Darinko", "option": "+"}, {"voter": "Kova\u010d Miro", "option": "+"}, {"voter": "Kristi\u0107 Maro", "option": "+"}, {"voter": "Kri\u017eani\u0107 Josip", "option": "+"}, {"voter": "Krstulovi\u0107 Opara Andro", "option": "+"}, {"voter": "Lackovi\u0107 \u017deljko", "option": "o"}, {"voter": "Lalovac Boris", "option": "+"}, {"voter": "Lekaj Prljaskaj Ermina", "option": "+"}, {"voter": "Lon\u010dar Davor", "option": "+"}, {"voter": "Lovrinovi\u0107 Ivan", "option": "+"}, {"voter": "Luci\u0107 Franjo", "option": "+"}, {"voter": "Luka\u010di\u0107 Ljubica", "option": "+"}, {"voter": "Maksim\u010duk Ljubica", "option": "+"}, {"voter": "Mati\u0107 Predrag", "option": "+"}, {"voter": "Mesi\u0107 Jasen", "option": "+"}, {"voter": "Mikuli\u0107 Andrija", "option": "+"}, {"voter": "Mili\u010devi\u0107 Davor", "option": "+"}, {"voter": "Milinovi\u0107 Darko", "option": "+"}, {"voter": "Milo\u0161evi\u0107 Boris", "option": "+"}, {"voter": "Milo\u0161evi\u0107 Domagoj Ivan", "option": "+"}, {"voter": "Mrak-Tarita\u0161 Anka", "option": "+"}, {"voter": "Nin\u010devi\u0107-Lesandri\u0107 Ivana", "option": "+"}, {"voter": "Pari\u0107 Darko", "option": "+"}, {"voter": "Peri\u0107 Grozdana", "option": "+"}, {"voter": "Petrijev\u010danin Vuksanovi\u0107 Irena", "option": "+"}, {"voter": "Petrov Bo\u017eo", "option": "+"}, {"voter": "Podolnjak Robert", "option": "+"}, {"voter": "Prgomet Drago", "option": "+"}, {"voter": "Puh Marija", "option": "+"}, {"voter": "Pusi\u0107 Vesna", "option": "+"}, {"voter": "Radin Furio", "option": "+"}, {"voter": "Ragu\u017e \u017deljko", "option": "+"}, {"voter": "Reiner \u017deljko", "option": "+"}, {"voter": "Romi\u0107 Davor", "option": "+"}, {"voter": "Ronko Zdravko", "option": "+"}, {"voter": "Ro\u0161\u010di\u0107 Dragica", "option": "+"}, {"voter": "Runti\u0107 Hrvoje", "option": "+"}, {"voter": "Sanader Ante", "option": "+"}, {"voter": "Sin\u010di\u0107 Ivan", "option": "-"}, {"voter": "Sladoljev Marko", "option": "+"}, {"voter": "Strenja-Lini\u0107 Ines", "option": "+"}, {"voter": "Stri\u010dak An\u0111elko", "option": "+"}, {"voter": "\u0160imi\u0107 Marko", "option": "+"}, {"voter": "\u0160imi\u0107 Miroslav", "option": "+"}, {"voter": "\u0160ipi\u0107 Ivan", "option": "+"}, {"voter": "\u0160kibola Marin", "option": "-"}, {"voter": "\u0160kori\u0107 Petar", "option": "+"}, {"voter": "Topolko Bernarda", "option": "+"}, {"voter": "Totgergeli Miro", "option": "+"}, {"voter": "Tu\u0111man Miroslav", "option": "+"}, {"voter": "Turina-\u0110uri\u0107 Nada", "option": "+"}, {"voter": "Tu\u0161ek \u017darko", "option": "+"}, {"voter": "Varda Ka\u017eimir", "option": "+"}, {"voter": "Vu\u010deti\u0107 Marko", "option": "+"}, {"voter": "Zekanovi\u0107 Hrvoje", "option": "+"}]},
+    {
+     "type": "vote",
+     "title": "PRIJEDLOG ODLUKE O IZBORU TRI SUCA USTAVNOG SUDA REPUBLIKE HRVATSKE - predlagatelj: Odbor za Ustav, Poslovnik i politi\u010dki sustav",
+     "results_data": ["Rasprava je zaklju\u010dena 13. srpnja 2017.", "Na 5. sjednici 11. listopada 2017. za suce Ustavnog suda RH izabrani su: dr. sc. Miroslav \u0160eparovi\u0107 (118 glasova \"za\", 7 \"protiv\"); dr. sc. Mato Arlovi\u0107 (116 glasova \"za\", 9 \"protiv\"); dr. sc. Goran Selanec (118 glasova \"za\", 7 \"protiv\").", "O ovoj to\u010dki dnevnog reda o\u010ditovali su se:\r\n"],
+     "parent": "http://www.sabor.hr/4-sjednica-hrvatskoga-sabora0001",
+     "url": "http://www.sabor.hr/prijedlog-odluke-o-izboru-tri-suca-ustavnog-suda-r",
+     "docs": [{"text": "PO IZBOR TRI SUCA USUD-a RH 2017.pdf",
+               "url": "/fgs.axd?id=49907"},
+              {"text": "AMANDMAN-Odbor za Ustav_izbor tri suca.pdf",
+               "url": "/fgs.axd?id=50347"}]},
     """
     def __init__(self, data, reference):
         # call init of parent object
         super(BallotsParser, self).__init__(reference)
 
-        # copy item to object
-        self.results = data['results']
+
         self.results_data = data['results_data']
-        self.time = data['time']
         self.title = data['title']
-        self.ballots = data['ballots']
+
         self.url = data['url']
         self.docs = data['docs']
 
@@ -39,46 +48,81 @@ class BallotsParser(BaseParser):
         self.vote = {}
         self.time_f = None
 
-        # parse data
-        self.parse_time()
+        # parse common data
         self.parse_title()
+        self.set_fixed_data()
 
-        if self.is_motion_saved():
-            # TODO edit motion if we need it make force_render mode
-            print("This motion is allready parsed")
-            """
-            self.parse_results()
-            motion_id = self.get_motion_id()
-            vote_id = self.get_vote_id()
+        self.ballots = None
 
-            print("patching motion", motion_id, 'and vote', vote_id)
-            
-            response = requests.patch(
-                API_URL + 'motions/' + str(motion_id) + '/',
-                json=self.motion,
-                auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
-            )
-            print(response.status_code)
-            response = requests.patch(
-                API_URL + 'votes/' + str(vote_id) + '/',
-                json=self.vote,
-                auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
-            )
-            print(response.status_code)
-            """
-            # TODO Delete this. Is here just for reparse ballots.
 
-            self.set_fixed_data()
-            self.parse_results()
-            self.set_docs()
+        if data['type'] == 'vote':
+            # parse vote without ballots
+
+            if self.is_motion_saved():
+                # vote allready exists
+                pass
+            else:
+                #if len(self.results_data) > 2:
+                #    # skip this shit
+                #    raise ValueError("this edge case is stupid", self.url)
+                # parse votes for////
+                # ["Rasprava je zaklju\u010dena 27. listopada 2017.","Odluka je donesena na 5. sjednici 27. listopada 2017. (81 glas \"za\", 4 \"protiv\", 4 \"suzdr\u017eana\")"]
+                self.parse_results()
+
+                self.parse_time_from_result_data()
+                self.parse_non_balots_balots()
+
+                # run setters
+                self.set_data()
+                self.set_docs()
         else:
-            # add new motion
-            self.set_fixed_data()
-            self.parse_results()
-            self.set_fixed_data()
+            # parse votes with ballots
+            self.time = data['time']
 
-            # run setters
-            self.set_data()
+            self.results = data['results']
+
+            self.ballots = data['ballots']
+
+
+            # parse data
+            self.parse_time()
+            
+
+            if self.is_motion_saved():
+                # TODO edit motion if we need it make force_render mode
+                print("This motion is allready parsed")
+                """
+                self.parse_results()
+                motion_id = self.get_motion_id()
+                vote_id = self.get_vote_id()
+
+                print("patching motion", motion_id, 'and vote', vote_id)
+                
+                response = requests.patch(
+                    API_URL + 'motions/' + str(motion_id) + '/',
+                    json=self.motion,
+                    auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
+                )
+                print(response.status_code)
+                response = requests.patch(
+                    API_URL + 'votes/' + str(vote_id) + '/',
+                    json=self.vote,
+                    auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
+                )
+                print(response.status_code)
+                """
+                # TODO Delete this. Is here just for reparse ballots.
+
+                #self.parse_results()
+                #self.set_docs()
+            else:
+                # add new motion
+                self.parse_results()
+                
+
+                # run setters
+                self.set_data()
+                self.set_docs()
 
     def is_motion_saved(self):
         return self.url in self.reference.motions.keys()
@@ -143,10 +187,14 @@ class BallotsParser(BaseParser):
             'iskazao',
             'potvrđen',
             'potvrđeno',
+            'odbijena',
+            'povučen'
         ]
         result_idx = -1
+        d_word = ''
         for word in decision_words:
             if word in session_split:
+                d_word = word
                 result_idx = session_split.index(word)
                 break
 
@@ -171,7 +219,7 @@ class BallotsParser(BaseParser):
             self.motion['result'] = 0
         else:
             raise ValueError("VOTE RESULT IS SOMETHING ELSE: ", pre_result, post_result)
-            print("VOTE RESULT IS SOMETHING ELSE: ")      
+            #print("VOTE RESULT IS SOMETHING ELSE: ")      
 
 
     def parse_time(self):
@@ -185,13 +233,19 @@ class BallotsParser(BaseParser):
         self.motion['gov_id'] = self.url
         self.vote['name'] = self.title
 
+        epa = find_epa_in_name(self.title)
+        if epa:
+            self.vote['epa'] = epa
+            self.motion['epa'] = epa
+
+
     def parse_ballots(self, vote):
-        print("PARSe Ballots")
+        #print("PARSe Ballots")
         # {"voter": "Aleksi\u0107 Goran", "option": "+"}
         option_map = {
-            'o': 'kvorum',
-            '+': 'za',
-            '-': 'proti'
+            'o': 'abstain',
+            '+': 'for',
+            '-': 'against'
         }
         data = []
         members_on_vote = []
@@ -214,12 +268,13 @@ class BallotsParser(BaseParser):
         for mp in mps:
             if mp['id'] not in members_on_vote:
                 temp ={
-                    'option': 'ni',
+                    'option': 'absent',
                     'vote': vote,
                     'voter': mp['id'],
                     'voterparty': self.reference.others
                 }
                 data.append(temp)
+        print("tuk je ballotov", len(data))
         self.add_ballots(data)
 
     def set_data(self):
@@ -236,7 +291,9 @@ class BallotsParser(BaseParser):
 
         if not vote_id in self.reference.votes_dates.keys():
             self.reference.votes_dates[vote_id] = self.time_f.isoformat()
-        self.parse_ballots(vote_id)
+
+        if self.ballots:
+            self.parse_ballots(vote_id)
 
     def set_docs(self):
         motion_id, motion_status = self.add_or_get_motion(
@@ -248,3 +305,91 @@ class BallotsParser(BaseParser):
                     'name': doc['text'],
                     'motion': motion_id}
             self.add_link(data)
+
+    def parse_time_from_result_data(self):
+        month_names = [
+            'siječanja',
+            'veljače',
+            'ožujka',
+            'travnja',
+            'svibnja',
+            'lipnja',
+            'srpnja',
+            'kolovoza',
+            'rujna',
+            'listopada',
+            'studenoga',
+            'prosinca'
+        ]
+        data = self.results_data
+        splited = data[0].split(' ')
+        dot_idxs = []
+        for i, s in enumerate(splited):
+            if '.' in s:
+                dot_idxs.append(i)
+        if len(dot_idxs) > 1:
+            date_list = splited[dot_idxs[0]:dot_idxs[1] + 1]
+            month = month_names.index(date_list[1]) + 1
+            time = datetime(
+                day=int(float(date_list[0])),
+                month = month,
+                year=int(float(date_list[2])),
+                hour=23,
+                minute=59)
+
+            self.time_f = time
+            self.motion['date'] = time.isoformat()
+            self.vote['start_time'] = time.isoformat()
+            self.session['start_time'] = time.isoformat()
+        else:
+            raise ValueError("Cannot parse date", data)
+
+    def parse_non_balots_balots(self):
+        # for votes where vote by hand :)
+        opt_map = {
+            "suzdr\u017eana": "abstain",
+            "za": "for",
+            "protiv": "against",
+        }
+        r=re.compile(r'\(.*\)')
+        text = self.results_data
+        data = r.search(text[1]).group(0)
+        data = data.replace('(','').replace(')','')
+        splited = data.split(' ')
+        j_data = {}
+        if 'jednoglasno' in data:
+            option = replace_nonalphanum(splited[3])
+            votes = splited[1]
+
+            j_data = {opt_map[option]: votes}
+
+        else:
+            #parse others
+            # (81 glas \"za\", 4 \"protiv\", 4 \"suzdr\u017eana\")
+            votes = 0
+            option = ''
+            for token in splited:
+                token = replace_nonalphanum(token)
+                if token.isalpha():
+                    if token in opt_map.keys():
+                        option = token
+                        j_data[opt_map[option]] = votes
+                if token.isdigit():
+                    votes = int(token)
+
+        self.vote['counter'] = json.dumps(j_data)
+
+def replace_nonalphanum(word):
+    word = re.sub(r'\W+', '', word)
+    return word
+
+
+def find_epa_in_name(name):                                                                                   
+    search_epa = re.compile(r'(\d+)')                 
+    if 'P.Z.' in name:               
+        new_text = name.split('P.Z.')[1]
+        a = search_epa.search(new_text.strip())
+        if a:
+            print(a.group(0))
+            return a.group(0)
+    return None

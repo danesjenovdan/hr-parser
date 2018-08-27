@@ -7,42 +7,52 @@ class VotesSpider(scrapy.Spider):
 
     custom_settings = {
         'ITEM_PIPELINES': {
-            'hrparser.pipelines.HrparserPipeline': 1
+            'hrparser.pipelines.HrparserPipeline': 1,
         }
     }   
 
     start_urls = [
         'http://www.sabor.hr/arhiva-dnevnih-redova-9',
-        ]
+    ]
+
+    skip_urls = [
+        'http://www.sabor.hr/prijedlog-polugodisnjeg-izvjestaja-o-izvrsenju0004',
+        'http://www.sabor.hr/prijedlog-odluke-o-izboru-tri-suca-ustavnog-suda-r'
+    ]
 
     def parse(self, response):
-        print('parse')
+        #print('parse')
         for i, link in enumerate(list(reversed(response.css("td.liste2 a::attr(href)").extract()))+['sjednica-sabora']):
 
             # dont parse too much
-            if i == 10:
-                break
+            #if i == 1:
+            #    break
 
             yield scrapy.Request(url='http://www.sabor.hr/' + link, callback=self.parser_session)
 
 
 
     def parser_session(self, response):
-        print('parse session')
+        #print('parse session')
         rows = response.css("td.webservice > span > table > tr.tocka-red")
         for row in rows:
             if row.css("td.zakljucena"):
                 # This row is ended
                 link = row.css("a::attr(href)").extract()[0]
-                yield scrapy.Request(url='http://www.sabor.hr/' + link, callback=self.parser_motion)
+                url = 'http://www.sabor.hr/' + link
+                if url in self.skip_urls:
+                    continue
+                yield scrapy.Request(url=url, callback=self.parser_motion, meta={'parent': response.url})
 
 
 
     def parser_motion(self, response):
-        print('parse_motion')
+        #print('parse_motion')
         ballots_link = []
-        links = response.css('td.ArticleText a::attr(href)').extract()
-        for link in links:
+        is_nested = False
+        links = response.css('td.ArticleText a')
+        for raw_link in links:
+            link = raw_link.css('::attr(href)').extract_first()
             if 'lasovanje.aspx' in link:
                 href = link.split('\'')
                 if len(href) > 1:
@@ -51,6 +61,19 @@ class VotesSpider(scrapy.Spider):
                             ballots_link.append(link)
                 else:
                     ballots_link.append(href[0])
+            elif 'lgs.axd?t' in link:
+                #print("nested")
+                alt = raw_link.css("::attr(alt)").extract_first()
+                if alt:
+                    if alt.isupper():
+                        is_nested = True
+                        url = 'http://www.sabor.hr/' + link
+                        if url in self.skip_urls:
+                            continue
+                        yield scrapy.Request(url=url, callback=self.parser_motion, meta={'parent': response.url})
+
+        if is_nested:
+            return
 
         ballots_link = list(set(ballots_link))
 
@@ -77,7 +100,8 @@ class VotesSpider(scrapy.Spider):
                 'results_data': result_and_data,
                 'type': 'vote',
                 'url': response.url,
-                'docs': docs}
+                'docs': docs,
+                'parent': response.meta['parent']}
 
         if ballots_link:
             for link in ballots_link:
