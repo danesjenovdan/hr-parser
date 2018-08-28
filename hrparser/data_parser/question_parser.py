@@ -78,10 +78,9 @@ class QuestionParser(BaseParser):
         recipient_pr, recipient_org = self.parse_edoc_person(self.recipient)
 
         author_id = self.get_or_add_person(author_pr)
-        if author_org:
-            author_org_id = self.get_organization_id(author_org.strip())
-        else:
-            author_org_id = None
+
+        author_org_id = self.get_membership_of_member_on_date(str(author_id), self.date_f)
+
 
         recipient_id = self.get_or_add_person(recipient_pr)
         if recipient_org:

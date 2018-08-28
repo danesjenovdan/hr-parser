@@ -7,6 +7,8 @@ from requests.auth import HTTPBasicAuth
 import requests
 import editdistance
 
+from datetime import datetime
+
 class BaseParser(object):
     def __init__(self, reference):
         self.reference = reference
@@ -185,3 +187,19 @@ class BaseParser(object):
                                 )
         membership_id = response.json()['id']
         return membership_id
+
+    def get_membership_of_member_on_date(self, person_id, search_date):
+        memberships = self.reference.memberships
+        if person_id in memberships.keys():
+            # person in member of parliamnet
+            mems = memberships[person_id]
+            for mem in mems:
+                start_time = datetime.strptime(mem['start_time'], "%Y-%m-%dT%H:%M:%S")
+                if start_time <= search_date:
+                    if mem['end_time']:
+                        end_time = datetime.strptime(mem['end_time'], "%Y-%m-%dT%H:%M:%S")
+                        if end_time >= search_date:
+                            return mem['on_behalf_of_id']
+                    else:
+                        return mem['on_behalf_of_id']
+        return None

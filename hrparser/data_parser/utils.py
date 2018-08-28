@@ -2,7 +2,7 @@ from datetime import datetime
 import editdistance
 
 def get_vote_key(name, date):
-    return (name + date).strip()
+    return (name + date).strip().lower()
 
 def fix_name(name_str):
     return ' '.join(map(str.capitalize, name_str.split(' ')))

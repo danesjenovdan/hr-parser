@@ -254,11 +254,16 @@ class BallotsParser(BaseParser):
             member = self.get_or_add_person(ballot['voter'])
             option = option_map[ballot['option']]
             #self.add_ballot(member, vote, option)
+
+            voter_party_id = self.get_membership_of_member_on_date(str(member), self.time_f)
+            if not voter_party_id:
+                voter_party_id = self.reference.others
+
             temp ={
             'option': option,
             'vote': vote,
             'voter': member,
-            'voterparty': self.reference.others
+            'voterparty': voter_party_id
             }
             data.append(temp)
             members_on_vote.append(member)

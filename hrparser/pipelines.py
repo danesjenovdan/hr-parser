@@ -94,6 +94,8 @@ class HrparserPipeline(object):
     questions = {}
     acts = {}
 
+    memberships = {}
+
     mandate_start_time = datetime(day=14, month=10, year=2016)
 
     def __init__(self):
@@ -157,6 +159,11 @@ class HrparserPipeline(object):
         items = getDataFromPagerApiDRF(API_URL + 'law')
         for item in items:
             self.acts[item['uid']] = {'id': item['id'], 'ended': item['procedure_ended']}
+
+        print('pipeline get acts items')
+        items = requests.get(API_URL + 'getParliamentMembershipsOfMembers').json()
+
+        self.memberships = items
 
         print('PIPELINE is READY')
 

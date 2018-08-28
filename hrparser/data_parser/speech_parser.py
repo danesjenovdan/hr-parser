@@ -72,10 +72,12 @@ class SpeechParser(BaseParser):
         # get and set speaket
         speaker, pg = self.parse_edoc_person(self.speaker[0])
         speaker_id = self.get_or_add_person(speaker)
-        if pg:
-            party_id = self.get_organization_id(pg.strip())
-        else:
-            party_id = None
+
+        party_id = self.get_membership_of_member_on_date(str(speaker_id), self.date)
+
+        if not party_id:
+            party_id = self.reference.others
+
         self.speech['party'] = party_id
         self.speech['speaker'] = speaker_id
 
