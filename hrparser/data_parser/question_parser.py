@@ -74,12 +74,24 @@ class QuestionParser(BaseParser):
         self.question['signature'] = self.signature
 
         self.question['title'] = self.field + ' | ' + self.title
-        author_pr, author_org = self.parse_edoc_person(self.author)
+        
+        author_prs = []
+        author_orgs = []
+        authors = self.author.split(';')
+        for author in authors:
+            author_pr, author_org = self.parse_edoc_person(author)
+            author_prs.append(author_pr)
+            author_orgs.append(author_org)
+
         recipient_pr, recipient_org = self.parse_edoc_person(self.recipient)
 
-        author_id = self.get_or_add_person(author_pr)
-
-        author_org_id = self.get_membership_of_member_on_date(str(author_id), self.date_f)
+        author_ids = []
+        author_org_ids = []
+        for author_pr in author_prs:
+            author_id = self.get_or_add_person(author_pr)
+            author_org_id = self.get_membership_of_member_on_date(str(author_id), self.date_f)
+            author_ids.append(author_id)
+            author_org_ids.append(author_org_id)
 
 
         recipient_id = self.get_or_add_person(recipient_pr)
@@ -88,8 +100,8 @@ class QuestionParser(BaseParser):
         else:
             recipient_party_id = None
 
-        self.question['author'] = author_id
-        self.question['author_org'] = author_org_id
+        self.question['authors'] = author_ids
+        self.question['author_org'] = author_org_ids
         self.question['recipient_person'] = [recipient_id]
         self.question['recipient_organization'] = [recipient_party_id]
         self.question['recipient_text'] = self.recipient
