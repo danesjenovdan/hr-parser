@@ -59,6 +59,10 @@ class ActParser(BaseParser):
         self.session_name = data['ref_ses'][0].split('-')[1]
         if '.' in self.session_name:
             self.session_name = self.session_name.replace('.', '')
+
+        # break if not session name
+        if not self.session_name:
+            return
         self.results = data['result'][0]
         self.pdf = data['pdf'][0]
         self.status = data['status'][0]
