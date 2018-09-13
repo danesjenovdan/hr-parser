@@ -33,7 +33,7 @@ class PersonParser(BaseParser):
         self.person = {}
         self.area_data = {
             "name": item['area'],
-            "calssification": "okraj"
+            "calssification": "district"
         }
 
         if self.get_person_id(self.name):
@@ -58,13 +58,13 @@ class PersonParser(BaseParser):
             birth_date=self.birth_date
         )
 
-        party_id = self.add_organization(self.party, "poslanska skupina")
+        party_id = self.add_organization(self.party, "party")
 
-        membership_id = self.add_membership(person_id, party_id, 'clan', 'cl', start_time)
+        membership_id = self.add_membership(person_id, party_id, 'member', 'cl', start_time)
 
         if 'wbs' in item.keys():
             for wb in self.wbs:
-                wb_id = self.add_organization(wb['org'], 'odbor')
+                wb_id = self.add_organization(wb['org'], 'committee')
                 self.add_membership(
                     person_id,
                     wb_id,

@@ -81,7 +81,7 @@ class QuestionsSpider(scrapy.Spider):
         field = response.css("#ctl00_ContentPlaceHolder_lblpodrucjeValue::text").extract()
         signature = response.css("#ctl00_ContentPlaceHolder_lblsignaturaValue::text").extract()
 
-        link = response.css("#ctl00_ContentPlaceHolder_lnk_PohraniPdf::attr(href)").extract()
+        link = response.css("#ctl00_ContentPlaceHolder_PitanjeFonogram::attr(href)").extract()
 
         answear = response.css("#ctl00_ContentPlaceHolder_OdgovorFonogram::attr(href)").extract()
 

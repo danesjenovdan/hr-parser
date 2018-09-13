@@ -32,7 +32,10 @@ class QuestionParser(BaseParser):
         self.field = data['field'][0]
         self.signature = data['edoc_url'].split('=')[1]
         self.edoc_url = data['edoc_url']
-        self.url = data['link'][0]
+        if data['link']:
+            self.url = data['link'][0]
+        else:
+            self.url = None
         print(data['typ'])
         if data['answear']:
             self.answear = data['answear'][0]
@@ -67,8 +70,8 @@ class QuestionParser(BaseParser):
         self.link['date'] = self.date_f.strftime("%Y-%m-%d")
 
     def parse_data(self):
-        if self.answear:
-            self.link['url'] = "http://edoc.sabor.hr/" + self.answear[3:]
+        if self.url:
+            self.link['url'] = "http://edoc.sabor.hr/Views/" + self.url
             self.link['name'] = self.title
 
         self.question['signature'] = self.signature
@@ -96,12 +99,12 @@ class QuestionParser(BaseParser):
 
         recipient_id = self.get_or_add_person(recipient_pr)
         if recipient_org:
-            recipient_party_id = self.add_organization(recipient_org.strip(), 'vlada')
+            recipient_party_id = self.add_organization(recipient_org.strip(), 'gov')
         else:
             recipient_party_id = None
 
         self.question['authors'] = author_ids
-        self.question['author_org'] = author_org_ids
+        self.question['author_orgs'] = author_org_ids
         self.question['recipient_person'] = [recipient_id]
         self.question['recipient_organization'] = [recipient_party_id]
         self.question['recipient_text'] = self.recipient
@@ -111,7 +114,7 @@ class QuestionParser(BaseParser):
 
         
         # send link
-        if method == 'set' and self.answear:
+        if method == 'set' and self.url:
             self.link['question'] = question_id
             self.add_link(self.link)
 

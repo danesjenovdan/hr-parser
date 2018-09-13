@@ -28,7 +28,8 @@ class BaseParser(object):
                 obj_id = response.json()['id']
                 getattr(self.reference, dict_key)[value_key] = obj_id
             except Exception as e:
-                print(endpoint, e, response.text)
+                print(response.content)
+                print(endpoint, e, response.text, 'request was not delivered request was not delivered request was not delivered request was not delivered')
                 return None, 'fail'
         return obj_id, 'set'
 
@@ -117,7 +118,8 @@ class BaseParser(object):
         if session_name:
             session_name = session_name + '. sjednica'
             return  self.api_request('sessions/', 'sessions', session_name, json_data)
-        else None
+        else:
+            return None
 
     def parse_edoc_person(self, data):
         splited = data.split('(')
@@ -135,7 +137,7 @@ class BaseParser(object):
                 if ';' in pg:
                     pg = pg.replace(';', '')
                 if 'Vlade' in pg:
-                    pg = 'vlada'
+                    pg = 'gov'
             else:
                 pg = None
         name = ' '.join(reversed(list(map(str.strip, name.split(',')))))

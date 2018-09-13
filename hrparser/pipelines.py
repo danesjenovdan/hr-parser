@@ -109,10 +109,10 @@ class HrparserPipeline(object):
         paries = getDataFromPagerApiDRF(API_URL + 'organizations/')
         for pg in paries:
             self.orgs[pg['name_parser']] = pg['id']
-            if pg['classification'] == 'poslanska skupina' or pg['classification'] == 'vlada' :
+            if pg['classification'] == 'party' or pg['classification'] == 'gov' :
                 self.parties[pg['name_parser']] = pg['id']
 
-            if pg['classification'] == 'klub':
+            if pg['classification'] == 'pg':
                 self.klubovi[pg['id']] = pg['_name']
 
         print(self.parties)
