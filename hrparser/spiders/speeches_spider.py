@@ -74,23 +74,31 @@ class SpeechSpider(scrapy.Spider):
         session_ref = response.css("#ctl00_ContentPlaceHolder_lblSazivSjednicaDatum::text").extract()
         content_list = response.css(".contentList li::text").extract()
         date_of_session = response.css(".dateString::text").extract()[0].strip()
+        speech_date = date_of_session
         order = 0
+        speeches = []
         try:
             agenda_id = response.url.split('=')[1]
         except:
             agenda_id = 0
-        for i in response.css(".singleContentContainer"):
-            speaker = i.css(".speaker h2::text").extract()
-            if not speaker:
+        for line in response.css("#ctl00_Updatepanel > div"):
+            # update speech date
+            if line.css('.tileShape'):
+                speech_date = line.css(".dateString::text").extract_first().strip()
                 continue
-            content = '\n'.join(map(str.strip, i.css(".singleContent dd::text").extract()))
-            order += 1
-            yield {'order': order,
-                   'date': date_of_session,
-                   'content_list': content_list,
-                   'session_ref': session_ref,
-                   'speaker': speaker,
-                   'content': content,
-                   'agenda_id': agenda_id}
+            elif line.css('.singleContentContainer'):
+                if line.css('.specialContentContainer'):
+                    continue
+                content = '\n'.join(map(str.strip, line.css(".singleContent dd::text").extract()))
+                speaker = line.css(".speaker h2::text").extract()
+                order += 1
+                speeches.append({'order': order,
+                       'date': speech_date,
+                       'content_list': content_list,
+                       'session_ref': session_ref,
+                       'speaker': speaker,
+                       'content': content,
+                       'agenda_id': agenda_id})
+        yield {'speeches': speeches}
 
         

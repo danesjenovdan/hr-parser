@@ -29,6 +29,9 @@ class VotesSpider(scrapy.Spider):
             #    break
 
             yield scrapy.Request(url='http://www.sabor.hr/' + link, callback=self.parser_session)
+        # parse last session
+        yield scrapy.Request(url='http://www.sabor.hr/sjednica-sabora', callback=self.parser_session)
+
 
 
 
