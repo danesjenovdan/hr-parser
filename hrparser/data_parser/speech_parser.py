@@ -47,8 +47,10 @@ class SpeechParser(BaseParser):
         }
         self.agenda_id, agenda_method = self.get_agenda_item(agenda_key, agenda_json)
 
-        if agenda_method == 'get':
+        print(agenda_method, agenda_text.strip())
 
+        if agenda_method == 'set':
+            print("SETTING", self.session_id)
             for data in list_data: 
 
                 self.date = data['date']
@@ -63,11 +65,10 @@ class SpeechParser(BaseParser):
 
                 self.parse_time()
                 self.set_data()
-            print(self.speeches)
-            #response = requests.post(API_URL + 'speechs/',
-            #                         json=self.speeches,  
-            #                         auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
-            #                        )
+            response = requests.post(API_URL + 'speechs/',
+                                     json=self.speeches,  
+                                     auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
+                                    )
         elif agenda_method == 'fail':
             print('agenda item set failed')
         else:
