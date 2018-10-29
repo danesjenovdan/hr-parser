@@ -233,9 +233,9 @@ class BallotsParser(BaseParser):
         self.session['start_time'] = self.time_f.isoformat()
 
     def parse_title(self):
-        self.motion['text'] = self.title
+        self.motion['text'] = self.title.lower()
         self.motion['gov_id'] = self.url
-        self.vote['name'] = self.title
+        self.vote['name'] = self.title.lower()
 
         epa = find_epa_in_name(self.title)
         if epa:
