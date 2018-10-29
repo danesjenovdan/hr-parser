@@ -164,13 +164,17 @@ class BallotsParser(BaseParser):
             raise ValueError("DONT FIND VOTING DATA: ", data)
 
         session_split = data[line_id].replace(',', '').split(" ")
+        session_name = ''
+        session_name_split = session_split
+        while not session_name.isnumeric() and 'sjednici' in session_name_split:
+            ses_idx = session_name_split.index('sjednici')
+            session_name = session_name_split[ses_idx - 1].strip()
+            if '.' in session_name:
+                session_name = session_name.replace('.', '')
+            if not session_name.isnumeric():
+                session_name_split = session_name_split[ses_idx+1:]
 
-        ses_idx = session_split.index('sjednici')
-        session_name = session_split[ses_idx - 1].strip()
-        if '.' in session_name:
-            session_name = session_name.replace('.', '')
         self.session['name'] = session_name
-
 
         decision_words = [
             'donesen',
