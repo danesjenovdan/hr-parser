@@ -27,7 +27,7 @@ options_map = {
     'Nije razmatran': 'fake',
     'Obustavljen postupak': 'fake',
     'Odbijen': 'rejected',
-    'Odbijen - povučen': 'rejected,
+    'Odbijen - povučen': 'rejected',
     'Ostaje na snazi': 'fake',
     'Povučen': 'retracted',
     'Procedura': 'in_procedure',

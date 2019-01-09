@@ -4,7 +4,7 @@ import logging
 
 from datetime import datetime
 
-class LegislationSpider(scrapy.Spider):
+class ActSpider(scrapy.Spider):
     name = 'acts'
     custom_settings = {
         'ITEM_PIPELINES': {
