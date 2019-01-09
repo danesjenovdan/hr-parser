@@ -19,6 +19,7 @@ jedi==0.12.0
 lxml==4.2.1
 parsel==1.4.0
 parso==0.2.0
+pdftotext==2.1.1
 pexpect==4.5.0
 pickleshare==0.7.4
 Pillow==5.1.0
@@ -30,9 +31,12 @@ pycparser==2.18
 PyDispatcher==2.0.5
 Pygments==2.2.0
 pyOpenSSL==17.5.0
+PyPDF2==1.26.0
 queuelib==1.5.0
+raven==6.10.0
 requests==2.18.4
 Scrapy==1.5.0
+scrapy-sentry==0.9.0
 service-identity==17.0.0
 simplegeneric==0.8.1
 six==1.11.0
