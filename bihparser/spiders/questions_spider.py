@@ -4,6 +4,7 @@ import logging
 
 from datetime import datetime
 
+
 class QuestionsSpider(scrapy.Spider):
     name = 'questions'
 
@@ -15,14 +16,17 @@ class QuestionsSpider(scrapy.Spider):
 
     start_urls = [
         'http://parlament.ba/oQuestion/GetORQuestions?RDId=&MandateId=4&DateFrom=&DateTo=',
-        ]
+    ]
     base_url = 'http://parlament.ba'
 
     data_map = {
         'Poslanik': 'name',
         'Broj i datum dokumenta': 'date',
         'Pitanje postavljeno u pisanoj formi - subjekt i datum': 'asigned',
+        'Nadležni subjekt kome je pitanje postavljeno u usmenoj formi': 'asigned',
+        'Sjednica na kojoj je pitanje usmeno postavljeno nadležnom subjektu': 'session',
         'Tekst pitanja (identičan usvojenom zapisniku)': 'text',
+        'Saziv': 'mandate'
     }
 
     def parse(self, response):
@@ -52,6 +56,6 @@ class QuestionsSpider(scrapy.Spider):
             try:
                 json_data[self.data_map[head]] = data
             except:
-                print('Define KEY: ', head)
-        print(json_data)
+                print('***\n***\n*** Define KEY:', head)
+                print('\n***\n***')
         yield json_data

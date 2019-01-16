@@ -83,12 +83,13 @@ class BihParserPipeline(object):
     agenda_items = {}
     orgs = {}
     klubovi = {}
-    
+
     added_session = {}
     added_votes = {}
     added_links = {}
 
     sessions = {}
+    sessions_by_name = {}
     motions = {}
     votes = {}
     votes_dates = {}
@@ -133,6 +134,7 @@ class BihParserPipeline(object):
         sessions = getDataFromPagerApiDRF(API_URL + 'sessions')
         for session in sessions:
             self.sessions[session['gov_id']] = session['id']
+            self.sessions_by_name[session['name']] = session['id']
 
         print('\n', self.sessions, '\n ')
 
@@ -212,7 +214,7 @@ class BihParserPipeline(object):
                             else:
                                 print("FAILLL, nisem najdu", prson, '|'+name+'|')
                     break
-                    
+
 
             return item
     # GET OR ADD
@@ -294,7 +296,7 @@ class BihParserPipeline(object):
                                            "classification": classification},
                                      auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
                                     )
-            
+
             try:
                 party_id = response.json()['id']
                 self.parties[name.strip()] = party_id
@@ -344,5 +346,3 @@ def getDataFromPagerApiDRF(url):
         data += response['results']
         url = response['next']
     return data
-
-
