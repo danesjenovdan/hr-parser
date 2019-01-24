@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import scrapy
 from datetime import datetime
+import json
+import requests
 
 class VotesSpider(scrapy.Spider):
     name = 'votes'
@@ -10,10 +12,11 @@ class VotesSpider(scrapy.Spider):
             'hrparser.pipelines.HrparserPipeline': 1,
         }
     }   
-
+    BASE_URL = 'http://www.sabor.hr'
     start_urls = [
-        'http://www.sabor.hr/arhiva-dnevnih-redova-9',
+        'http://www.sabor.hr/hr/sjednice/pregled-dnevnih-redova',
     ]
+    THIS_SAZIV_ID = 170
 
     skip_urls = [
         'http://www.sabor.hr/prijedlog-polugodisnjeg-izvjestaja-o-izvrsenju0004',
@@ -21,97 +24,79 @@ class VotesSpider(scrapy.Spider):
     ]
 
     def parse(self, response):
-        #print('parse')
-        for i, link in enumerate(list(reversed(response.css("td.liste2 a::attr(href)").extract()))+['sjednica-sabora']):
-
-            # dont parse too much
-            #if i == 1:
-            #    break
-
-            yield scrapy.Request(url='http://www.sabor.hr/' + link, callback=self.parser_session)
-        # parse last session
-        yield scrapy.Request(url='http://www.sabor.hr/sjednica-sabora', callback=self.parser_session)
-
-
+        data = {
+            'view_name': 'sabor_data',
+            'view_display_id': 'dnevni_redovi',
+            'field_saziv_target_id': '170',
+        }
+        url = 'http://www.sabor.hr/hr/views/ajax?_wrapper_format=drupal_ajax'
+        for select in response.css('[name="plenarna_id"] option')[:2]:
+            value=select.css("::attr(value)").extract_first()
+            if value:
+                print('-'*100)
+                print(select.css('::text').extract_first(), value)
+                print('-'*100)
+                data['plenarna_id'] = str(value)
+                yield scrapy.FormRequest(url, callback=self.parser_session, method='POST', formdata=data)
 
 
     def parser_session(self, response):
-        #print('parse session')
-        rows = response.css("td.webservice > span > table > tr.tocka-red")
-        for row in rows:
-            if row.css("td.zakljucena"):
-                # This row is ended
-                link = row.css("a::attr(href)").extract()[0]
-                url = 'http://www.sabor.hr/' + link
-                if url in self.skip_urls:
-                    continue
-                yield scrapy.Request(url=url, callback=self.parser_motion, meta={'parent': response.url})
-
+        j_data = json.loads(response.css('textarea::text').extract_first())
+        my_response = scrapy.selector.Selector(text=j_data[4]['data'].strip())
+        session_name = my_response.css('.group h2::text').extract_first()
+        for line in my_response.css(".content li"):
+            if line.css('.dnevni-red-stavka::attr(data-status)').extract_first()=='8': # if voteing is ended
+                url = line.css('a::attr(href)').extract_first()
+                print(url)
+                yield scrapy.Request(url=self.BASE_URL + url, callback=self.parser_motion, meta={'parent': response.url, 'session_name': session_name})
 
 
     def parser_motion(self, response):
-        #print('parse_motion')
-        ballots_link = []
-        is_nested = False
-        links = response.css('td.ArticleText a')
-        for raw_link in links:
-            link = raw_link.css('::attr(href)').extract_first()
-            if 'lasovanje.aspx' in link:
-                href = link.split('\'')
-                if len(href) > 1:
-                    for link in href:
-                        if 'lasovanje.aspx' in link:
-                            ballots_link.append(link)
-                else:
-                    ballots_link.append(href[0])
-            elif 'lgs.axd?t' in link:
-                #print("nested")
-                alt = raw_link.css("::attr(alt)").extract_first()
-                if alt:
-                    if alt.isupper():
-                        is_nested = True
-                        url = 'http://www.sabor.hr/' + link
-                        if url in self.skip_urls:
-                            continue
-                        yield scrapy.Request(url=url, callback=self.parser_motion, meta={'parent': response.url})
-
-        if is_nested:
+        child_motion_urls = response.css('.popis-sadrzaja .item-list li a::attr(href)').extract()
+        for child_motion_url in child_motion_urls:
+            yield scrapy.Request(url=self.BASE_URL + child_motion_url, callback=self.parser_motion, meta=response.meta)
+        if child_motion_urls:
             return
+        title = response.css(".views-row h1::text").extract_first()
+        result_and_data = response.css(".field-content p *::text").extract()
+        vote_date = response.css(".views-field-field-vrijeme-izglasavanja .field-content::text").extract_first()
+        tid = response.url.split('tid=')[1]
 
-        ballots_link = list(set(ballots_link))
+        ballots_link = []
+        motion_data = None
+        # if is link Rezultati glasovanja than call ajax for ballots url
+        try:
+            motion_data = requests.get('http://sabor.hr/hr/videosnimka-rasprave/'+tid+'/').json()
+        except:
+            pass
+        if motion_data and 'glasovanje_link' in motion_data.keys() and motion_data['glasovanje_link']:
+            tilte = motion_data['naziv']
+            gov_id = motion_data['glasovanje_id']
+            ballots_link = [motion_data['glasovanje_link']]
+        else:
+            ballots_link = response.css('.views-field-field-status-tekstualni a::attr(href)').extract()
 
         docs = []
-        raw_docs = response.css("td.ArticleLinks")
+        raw_docs = response.css(".view-display-id-vezane_informacije .field-content")
         for doc in raw_docs:
             docs.append({'url': doc.css("a::attr(href)").extract()[0],
-                         'text': doc.css("a span::text").extract()[0]})
-
-        #TODO
-
-        title = response.css("td.ArticleHeading span::text").extract()
-        if not title:
-            title = response.css("td.ArticleHeading span p::text").extract()
-        title = '\n'.join(title)
-        result_and_data = response.css("td.ArticleText span::text").extract()
-
-        links = []
-        for i in response.css("td.ArticleLinks a"):
-            links.append({'url': i.css("::attr(href)").extract()[0],
-                          'name': i.css("::text").extract()[0]})
+                         'text': doc.css("a::text").extract()[0]})
 
         data = {'title': title,
                 'results_data': result_and_data,
                 'type': 'vote',
+                'date': vote_date,
                 'url': response.url,
                 'docs': docs,
-                'parent': response.meta['parent']}
+                'parent': response.meta['parent'],
+                'session_name': response.meta['session_name']}
 
         if ballots_link:
-            for link in ballots_link:
-                yield scrapy.Request(url=link, meta={'data': data}, callback=self.parse_ballots)
+            for i, link in enumerate(ballots_link):
+                data['parent'] = response.url
+                yield scrapy.Request(url=link, meta={'data': data, 'c_item': i, 'm_items': len(ballots_link)}, callback=self.parse_ballots)
         else:
             yield data
-
 
     def parse_ballots(self, response):
         title = response.css("span#LNazivTocke::text").extract()[0]
@@ -130,5 +115,7 @@ class VotesSpider(scrapy.Spider):
                      'results': result,
                      'ballots': ballots,
                      'url': response.url,
-                     'type': 'vote_ballots'})
+                     'type': 'vote_ballots',
+                     'c_item': response.meta['c_item'],
+                     'm_items': response.meta['m_items']})
         yield data

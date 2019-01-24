@@ -117,6 +117,7 @@ class BaseParser(object):
     def add_or_get_session(self, session_name, json_data):
         if session_name:
             session_name = session_name + '. sjednica'
+            json_data['name'] = session_name
             return  self.api_request('sessions/', 'sessions', session_name, json_data)
         else:
             return None
