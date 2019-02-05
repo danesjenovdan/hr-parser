@@ -18,8 +18,6 @@ import scrapy
 from scrapy.pipelines.images import ImagesPipeline
 from scrapy.exceptions import DropItem
 
-from .data_parser.vote_parser import BallotsParser
-from .data_parser.speech_parser import SpeechParser
 from .data_parser.question_parser import QuestionParser
 from .data_parser.person_parser import PersonParser
 from .data_parser.act_parser import ActParser
