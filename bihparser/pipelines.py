@@ -2,8 +2,6 @@
 from .settings import API_URL, API_AUTH, API_DATE_FORMAT
 
 from bihparser.spiders.people_spider import PeopleSpider
-from bihparser.spiders.speeches_spider import SpeechSpider
-from bihparser.spiders.votes_spider import VotesSpider
 from bihparser.spiders.questions_spider import QuestionsSpider
 from bihparser.spiders.act_spider import ActSpider
 from bihparser.spiders.club_spider import ClubSpider
@@ -178,15 +176,9 @@ class BihParserPipeline(object):
             print("PPEPPEL")
             if item['type'] =='mp':
                 PersonParser(item, self)
-        elif type(spider) == SpeechSpider:
-            print("spic_spider")
-            SpeechParser(item, self)
         elif type(spider) == ClubSpider:
             print("club_spider")
             ClubParser(item, self)
-        elif type(spider) == VotesSpider:
-            BallotsParser(item, self)
-
         elif type(spider) == QuestionsSpider:
             QuestionParser(item, self)
         elif type(spider) == ActSpider:
