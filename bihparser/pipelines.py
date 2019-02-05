@@ -74,7 +74,7 @@ class BihImagesPipeline(ImagesPipeline):
 class BihParserPipeline(object):
     value = 0
     commons_id = COMMONS_ID
-    others = 73
+    others = 2
     local_data = {}
     members = {}
     parties = {}

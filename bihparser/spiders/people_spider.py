@@ -42,7 +42,7 @@ class PeopleSpider(scrapy.Spider):
 
         data.update(parse_body(response))
 
-        data.update({'type': 'mp','name': full_name, 'img': img_url})
+        data.update({'type': 'mp','name': full_name, 'img': img_url, 'url': response.url})
         print('yeald'+full_name)
         yield data
 

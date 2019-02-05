@@ -55,51 +55,54 @@ class ActParser(BaseParser):
             #"result": ["81/8/22"],
             #"status": ["donesen i objavljen"],
             "dates": ["24.11.2016.; 25.11.2016."]},
+
+            {
+            # 'date': '66.,   3.9.2018. ',
+            # 'epa': ' 01,02-02-1-753/18, od 15.3.2018. ',
+            'faza': ' Procedura - UPK je utvrdila da je PZ usaglašen sa Ustavom BiH i pravnim sistemom BiH ',
+            # 'mdt': ' Zajednička komisija za odbranu i sigurnost BiH ',
+            # 'session': ' 120 sjednica, održana 9.11.2017. ',
+            # 'status': 'Procedura',
+            # 'title': 'Prijedlog zakona o izmjenama i dopunama Zakona o deminiranju u Bosni i Hercegovini',
+            #'uid': '123123'
+            }
         """
         # call init of parent object        
         super(ActParser, self).__init__(reference)
 
+        self.act = data
 
-        self.title = data['title'][0]
-        #self.pub_title = data['pub_title'][0]
-        self.signature = data['signature'][0]
-        #self.agenda_no = data['agenda_no'][0]
-
-        print(self.signature)
-
-        #self.text_date = ''.join(data['date_vote']).replace(',', '').strip()
-        dates = filter(None, map(str.strip, data['date_vote']))
-        try:
-            self.date = max([datetime.strptime(date, API_DATE_FORMAT + '.')  for date in dates])
-        except:
-            self.date = datetime(day=1, month=1, year=2000)
-        #self.date = datetime.strptime(self.text_date, API_DATE_FORMAT + '.')
-        self.mdt = data['mdt'][0]
-        self.session_name = data['ref_ses'][0].split('-')[1]
-        if '.' in self.session_name:
-            self.session_name = self.session_name.replace('.', '')
-
-        # break if not session name
-        if not self.session_name:
-            return
-        self.results = data['result'][0]
-        self.pdf = data['pdf'][0]
-        self.status = data['status'][0]
-        self.epa = data['epa'][0] if data['epa'] else None 
+        #self.title = data['text'] # REMOVE
+        #self.mdt = data['mdt'] # REMOVE
         self.uid = data['uid']
-        try:
-            self.voting = data['voting'][0]
-        except:
-            self.voting = ''
 
-        self.session = {
-            "organization": self.reference.commons_id,
-            "organizations": [self.reference.commons_id],
-            "in_review": False,
-            "name": self.session_name
-        }
+        if 'date' in data.keys() and data['date']:
+            date = data['date'].split(',')[1].strip()
+            self.date = datetime.strptime(date, API_DATE_FORMAT + '.')
+        else:
+            date = data['epa'].split('od')[1].strip()
+            self.date = datetime.strptime(date, API_DATE_FORMAT + '.')
 
-        self.act = {}
+        self.status = data['status']
+        self.epa = data['epa'].split(', ')[0].strip()
+        
+        #try:
+        #    self.voting = data['voting'][0]
+        #except:
+        #    self.voting = ''
+
+        # dont parse session of Legislation TODO: when comes sessions with legislation fix this
+        #if 'session' in self.act.keys():
+        #    self.session_name = data['session'].split(',')[0].strip()
+        #    self.session = {
+        #        "organization": self.reference.commons_id,
+        #        "organizations": [self.reference.commons_id],
+        #        "in_review": False,
+        #        "name": self.session_name,
+        #        "start_time": self.date.isoformat() 
+        #    }
+        #else:
+        self.session = None
 
         act_api_status = self.act_status()
         if act_api_status == 'unknown':
@@ -115,29 +118,24 @@ class ActParser(BaseParser):
             pass
 
     def parse_data(self):
-        session_id, session_status = self.add_or_get_session(self.session_name, self.session)
-
-        self.act['session'] = session_id
-        self.act['text'] = self.title
-        self.act['mdt'] = self.mdt
+        if self.session:
+            session_id, session_status = self.add_or_get_session(self.session_name, self.session)
+            self.act['session'] = session_id
+        else:
+            self.act['session'] = None
+        #this already in act data
+        #self.act['text'] = self.title
+        #self.act['mdt'] = self.mdt
+        #self.act['uid'] = self.uid
         self.act['epa'] = self.epa
-        self.act['uid'] = self.uid
-        self.act['classification'] = 'zakon' if self.epa else 'akt' 
+        self.act['classification'] = 'legislation' if self.epa else 'akt' 
 
         #if 'Vlada HR' in self.mdt:
         #    self.mdt = self.mdt.replace('HR')
-
-        mdt_fk = self.add_organization(self.mdt.strip(), '', create_if_not_exist=False)
-        self.act['mdt_fk'] = mdt_fk
+        if 'mdt' in self.act.keys():
+            mdt_fk = self.add_organization(self.act['mdt'].strip(), '', create_if_not_exist=True)
+            self.act['mdt_fk'] = mdt_fk
         self.act['procedure_phase'] = self.status
-        """
-        statuses = {
-            'odbijen': 'end_of_hearing',
-            'prihvaćen': 'under_consideration',
-            'donesen': 'end_of_hearing',
-            'prima se na znanje': 'end_of_hearing',
-            }
-        """
 
         try:
             self.act['status'] = options_map[self.status]
@@ -156,13 +154,13 @@ class ActParser(BaseParser):
         try:
             self.act['result'] = options_map[self.status]
         except:
-            self.act['result'] = ''
+            self.act['result'] = 'in_procedure'
 
         if self.act['result'] in ['accepted', 'rejected']:
             self.act['procedure_ended'] = True
 
         self.act['date'] = self.date.isoformat()
-        self.act['procedure'] = self.voting
+        #self.act['procedure'] = self.voting
 
     def act_status(self):
         if self.uid.strip() in self.reference.acts.keys():

@@ -27,12 +27,12 @@ class PersonParser(BaseParser):
         }
 
         if self.get_person_id(self.name):
-            print('pass')
             pass
         else:
             self.get_person_data(item)
 
     def get_person_data(self, item):
+        gov_id = item['url'].split('/')[-1]
         area_id, method = self.add_or_get_area(item['area'], self.area_data)
         if area_id:
             area = [area_id]
@@ -42,6 +42,7 @@ class PersonParser(BaseParser):
         person_id = self.get_or_add_person(
             fix_name(self.name),
             districts=area,
+            gov_id=gov_id,
             #mandates=self.num_of_prev_mandates,
             #education=edu,
             #birth_date=self.birth_date

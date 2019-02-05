@@ -38,12 +38,13 @@ class BaseParser(object):
         return self.api_request('agenda-items/', 'agenda_items', value_key, json_data)
 
 
-    def get_or_add_person(self, name, districts=None, mandates=None, education=None, birth_date=None):
+    def get_or_add_person(self, name, districts=None, mandates=None, education=None, birth_date=None, gov_id=None):
         person_id = self.get_person_id(name)
         if not person_id:
             person_data = {
                 'name': fix_name(name),
                 'name_parser': name_parser(name),
+                'gov_id': gov_id
             }
             if districts:
                 person_data['districts'] = districts
