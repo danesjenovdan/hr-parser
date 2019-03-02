@@ -82,7 +82,7 @@ class HrparserPipeline(object):
     agenda_items = {}
     orgs = {}
     klubovi = {}
-    
+
     added_session = {}
     added_votes = {}
     added_links = {}
@@ -204,7 +204,7 @@ class HrparserPipeline(object):
                             else:
                                 print("FAILLL, nisem najdu", prson, '|'+name+'|')
                     break
-                    
+
 
             return item
     # GET OR ADD
@@ -286,7 +286,7 @@ class HrparserPipeline(object):
                                            "classification": classification},
                                      auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
                                     )
-            
+
             try:
                 party_id = response.json()['id']
                 self.parties[name.strip()] = party_id
@@ -336,5 +336,3 @@ def getDataFromPagerApiDRF(url):
         data += response['results']
         url = response['next']
     return data
-
-
