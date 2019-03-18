@@ -9,10 +9,10 @@
 #     https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
-BOT_NAME = 'bihparser'
+BOT_NAME = 'parlaparser'
 
-SPIDER_MODULES = ['bihparser.spiders']
-NEWSPIDER_MODULE = 'bihparser.spiders'
+SPIDER_MODULES = ['parlaparser.spiders']
+NEWSPIDER_MODULE = 'parlaparser.spiders'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
@@ -89,7 +89,7 @@ ROBOTSTXT_OBEY = True
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
-API_URL = 'http://51.15.55.106/data/v1/'
+API_URL = 'http://data.nov.parlameter.si/v1/'
 
 API_AUTH = ('parlauser', 'parlapassword')
 

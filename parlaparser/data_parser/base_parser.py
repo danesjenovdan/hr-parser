@@ -149,7 +149,7 @@ class BaseParser(object):
         #if 'mora' in name:
         #    p = True
         for key in self.reference.parties.keys():
-            for parser_name in key.split('|'):
+            for parser_name in key.split(','):
                 #if p:
                 #    print(parser_name, editdistance.eval(name, parser_name))
                 if editdistance.eval(name, parser_name) < 1:
@@ -170,7 +170,7 @@ class BaseParser(object):
                                                "classification": classification},
                                          auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
                                         )
-                
+
                 try:
                     party_id = response.json()['id']
                     self.reference.parties[name.strip()] = party_id
