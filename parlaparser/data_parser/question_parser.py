@@ -10,10 +10,10 @@ import re
 
 class QuestionParser(BaseParser):
     def __init__(self, data, reference):
-        print('\n'*5)
-        print('='*50, ' QuestionParser ', '='*50)
-        pprint(data)
-        print('='*50, ' ============== ', '='*50)
+        #print('\n'*5)
+        #print('='*50, ' QuestionParser ', '='*50)
+        #pprint(data)
+        #print('='*50, ' ============== ', '='*50)
 
         # call init of parent object
         super(QuestionParser, self).__init__(reference)
@@ -42,7 +42,6 @@ class QuestionParser(BaseParser):
             self.parse_data()
 
     def is_question_saved(self):
-        print("AAAAAAAAAAAAAAA ", self.signature)
         return self.signature in self.reference.questions.keys()
 
     def get_question_id(self):
@@ -58,7 +57,8 @@ class QuestionParser(BaseParser):
         self.question['title'] = self.title
 
         if not self.authors:
-            print('************** self.author is empty')
+            #print('************** self.author is empty')
+            pass
         else:
             author_ids = []
             author_org_ids = []
