@@ -10,8 +10,6 @@ import pdftotext
 import copy
 import re
 
-VOTE_MAP = {'Protiv': 'against', 'Za': 'for', 'Nije glasao': 'abstain', 'Suzdržan': 'abstain', 'Nije prisutan': 'absent'}
-
 class SessionParser(BaseParser):
     def __init__(self, item, reference):
         """
@@ -21,15 +19,23 @@ class SessionParser(BaseParser):
             'start_time': start_time,
             'speeches'
             'votes'
+            'session_of'
         """
-        # call init of parent object 
+        # call init of parent object
         super(SessionParser, self).__init__(reference)
         print('.:SESSION PARSER:.')
         self.speeches = []
 
+        if item['session_of'] == 'Dom naroda':
+            org = self.reference.people_id
+        elif item['session_of'] == 'Predstavnički dom':
+            org = self.reference.commons_id
+        else:
+            print("WTF session")
+            return
         self.session = {
-            "organization": self.reference.commons_id,
-            "organizations": [self.reference.commons_id],
+            "organization": org,
+            "organizations": [org],
             "in_review": False,
             "gov_id": item['gov_id'],
             "name": item['name'],
@@ -74,13 +80,16 @@ class SessionParser(BaseParser):
 
                 self.speeches.append(speech)
             response = requests.post(API_URL + 'speechs/',
-                                     json=self.speeches,  
+                                     json=self.speeches,
                                      auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
                                     )
         if 'votes' in item.keys():
             print('\n', 'VOTES in a KEY', '\n')
-            votes_parser = VotesParser("files/"+item['votes'])
-            
+            if item['session_of'] == 'Dom naroda':
+                votes_parser = VotesParserPeople("files/"+item['votes'])
+            elif item['session_of'] == 'Predstavnički dom':
+                votes_parser = VotesParser("files/"+item['votes'])
+
             for order, parsed_vote in enumerate(votes_parser.votes):
                 print('PARSE', parsed_vote, len(parsed_vote))
                 if 'name' in parsed_vote.keys():
@@ -171,7 +180,7 @@ class ContentParser(object):
                     self.state = 'parse'
                     continue
             elif self.state == 'parse':
-                # skip line if line is not speakers content 
+                # skip line if line is not speakers content
                 if not line or line[0]=='/' or '___(?)' in line or line.isdigit() or 'Sjednica završena' in line:
                     continue
                 # line is of new speaker name
@@ -190,11 +199,12 @@ class ContentParser(object):
             'speaker': current_speaker,
             'content': ' '.join(current_content),
         })
-        
+
 
 
 class VotesParser(object):
     def __init__(self, file_name):
+        self.VOTE_MAP = {'Protiv': 'against', 'Za': 'for', 'Nije glasao': 'abstain', 'Suzdržan': 'abstain', 'Nije prisutan': 'absent'}
         with open(file_name, "rb") as f:
             pdf = pdftotext.PDF(f)
         content = "".join(pdf)
@@ -210,7 +220,7 @@ class VotesParser(object):
         # helpers for find agenda
         self.num_of_lines = 0
         self.found_keyword = False
-        
+
         for line in self.content:
             #print(line)
             #print(self.state, self.num_of_lines, self.found_keyword)
@@ -236,7 +246,7 @@ class VotesParser(object):
 
             elif self.state == 'voteing-about':
                 current_vote['name'].append(self.parse_multiline(line, 'Glasanje o', 'parse'))
-                
+
 
             if self.state == 'parse':
                 if line.startswith('Redni broj tačke'):
@@ -273,7 +283,7 @@ class VotesParser(object):
     def parse_ballot(self, line):
         #print(repr(line))
         temp1, name, temp2, option = re.split("\s\s+", line)
-        return {'name': name, 'option': VOTE_MAP[option]}
+        return {'name': name, 'option': self.VOTE_MAP[option]}
 
     def parse_multiline(self, line, keyword, next_state):
         if line.startswith(keyword):
@@ -292,3 +302,94 @@ class VotesParser(object):
                 self.state = next_state
                 self.found_keyword = False
             return line.strip()
+
+
+class VotesParserPeople(object):
+    def __init__(self, file_name):
+        self.VOTE_MAP = {'PROTIV': 'against', 'ZA': 'for', 'NIJE PRISUTAN': 'abstain', 'SUZDRŽAN': 'abstain'}
+        with open(file_name, "rb") as f:
+            pdf = pdftotext.PDF(f)
+        content = "".join(pdf)
+        self.content = content.split('\n')
+        self.state = 'start'
+        self.votes = []
+
+        self.parse()
+
+    def parse(self):
+        current_vote = {'count':{}, 'ballots':[], 'agenda_item_name':[], 'name': []}
+
+        # helpers for find agenda
+        self.num_of_lines = 0
+        self.found_keyword = False
+
+        for line in self.content:
+            print(line)
+            #print(self.state, self.num_of_lines, self.found_keyword)
+            line = line.strip()
+            if re.split("\s\s+", line.strip()) == ['ZA', 'PROTIV', 'SUZDRŽAN', 'NIJE PRISUTAN', 'UKUPNO']:
+                self.state = 'start'
+                current_vote['agenda_item_name'] = ' '.join(current_vote['agenda_item_name'])
+                if current_vote['agenda_item_name'].endswith(";"):
+                    current_vote['agenda_item_name'] = current_vote['agenda_item_name'][0:-1]
+                current_vote['name'] = ' '.join(current_vote['name'])
+                if current_vote['name'].endswith(";"):
+                    current_vote['name'] = current_vote['name'][0:-1]
+                if current_vote['ballots']:
+                    self.votes.append(current_vote)
+                current_vote = {'count':{}, 'ballots':[], 'agenda_item_name':[], 'name': []}
+                continue
+
+            if self.state == 'start':
+                if line.startswith('Rezultati glasanja'):
+                    self.state = 'date'
+                    continue
+
+            elif self.state == 'date':
+                current_vote['start_time'] = datetime.strptime(line, API_DATE_FORMAT + ' %H:%M:%S')
+                self.state = 'agenda'
+                continue
+
+            elif self.state == 'agenda':
+                if line.startswith('Dom:') or line.startswith('Sjednica:') or line.startswith('Način glasanja:'):
+                    continue
+                if line.startswith('Redni broj:'):
+                    line = line.replace("Redni broj:", "").strip()
+                    current_vote['agenda_item_name'].append(line)
+                elif line.startswith('Glasanje o:'):
+                    self.state = 'voteing-about'
+                else:
+                    current_vote['agenda_item_name'].append(line.strip())
+
+
+            if self.state == 'voteing-about':
+                if line.startswith('Tip glasanja:'):
+                    if 'poništeno' in line:
+                        # skip this vote because it's repeted
+                        current_vote = {'count': {}, 'ballots': [], 'agenda_item_name': [], 'name': []}
+                        self.state = 'start'
+                        continue
+                    current_vote['type'] = line.replace('Tip glasanja:', '').strip()
+                    self.state = 'parse'
+                    continue
+                current_vote['name'].append(line.replace('Glasanje o:', '').strip())
+
+            if self.state == 'parse':
+                if line.startswith('Prisutno'):
+                    current_vote['count']['absent'] = 15 - int(line[-5:].strip())
+                elif line.startswith('ZA'):
+                    current_vote['count']['for'] = int(line[-5:].strip())
+                elif line.startswith('PROTIV'):
+                    current_vote['count']['against'] = int(line[-5:].strip())
+                elif line.startswith('SUZDRŽAN'):
+                    current_vote['count']['abstain'] = int(line[-5:].strip())
+                elif line.startswith('Ukupno'):
+                    pass
+                else:
+                    # parse ballot
+                    current_vote['ballots'].append(self.parse_ballot(line))
+
+    def parse_ballot(self, line):
+        print(repr(line))
+        name, temp2, option = re.split("\s\s+", line)
+        return {'name': name, 'option': self.VOTE_MAP[option]}

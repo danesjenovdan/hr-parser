@@ -13,18 +13,20 @@ class PeopleSpider(scrapy.Spider):
     }
 
     start_urls = [
-        'http://parlament.ba/representative/list',
+        #'http://parlament.ba/representative/list',
+        'http://parlament.ba/delegate/list'
         ]
     base_url = 'http://parlament.ba'
 
     def parse(self, response):
+        person_type = response.css(".article header h1::text").extract_first()
         for i, mp in enumerate(response.css('.table-reps tbody tr')):
             link = mp.css('td')[1].css('a::attr(href)').extract_first()
             print(link)
             #if link[0] == '#' or link[0] == '/':
             #    continue
 
-            yield scrapy.Request(url=self.base_url + link, callback=self.parser_person)
+            yield scrapy.Request(url=self.base_url + link, callback=self.parser_person, meta={'person_type': person_type})
         next_page = response.css('.PagedList-skipToNext a::attr(href)').extract_first()
         if next_page:
             yield scrapy.Request(url=self.base_url + next_page, callback=self.parse)
@@ -42,7 +44,7 @@ class PeopleSpider(scrapy.Spider):
 
         data.update(parse_body(response))
 
-        data.update({'type': 'mp','name': full_name, 'img': img_url, 'url': response.url})
+        data.update({'type': response.meta['person_type'], 'name': full_name, 'img': img_url, 'url': response.url})
         print('yeald'+full_name)
         yield data
 
@@ -55,16 +57,18 @@ def parser_other_data(table):
         key = i.css("th::text").extract_first()
         tmp = {}
         if key == 'Stranka':
-            tmp = parse_party(i)
+            tmp = parse_party(i, 'party')
         elif key == 'Izborna jedinica / Entitet':
             tmp = parse_area(i)
         elif key == 'E-mail':
             tmp = parse_email(i)
+        elif key == 'Klub':
+            tmp = parse_party(i, 'klub')
         data.update(tmp)
     return data
 
-def parse_party(row):
-    return {'party': row.css('td span::text').extract_first()}
+def parse_party(row, key):
+    return {key: row.css('td span::text').extract_first()}
 
 def parse_area(row):
     return {'area': row.css('td span a::text').extract_first()}

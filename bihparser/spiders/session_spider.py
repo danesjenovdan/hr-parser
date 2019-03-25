@@ -15,11 +15,13 @@ class SessionSpider(scrapy.Spider):
 
     start_urls = [
         'http://parlament.ba/session/Read?ConvernerId=1',
+        'http://parlament.ba/session/Read?ConvernerId=2',
         ]
     base_url = 'http://parlament.ba'
     def parse(self, response):
+        session_of = response.css(".article header h1::text").extract_first()
         for link in response.css('.list-articles li a::attr(href)').extract():
-            yield scrapy.Request(url=self.base_url + link, callback=self.session_parser)
+            yield scrapy.Request(url=self.base_url + link, callback=self.session_parser, meta={'session_of': session_of})
 
         next_page = response.css('.PagedList-skipToNext a::attr(href)').extract_first()
         if next_page:
@@ -33,8 +35,8 @@ class SessionSpider(scrapy.Spider):
 
         print(session_name)
 
-
         data = {
+            'session_of': response.meta['session_of'],
             'gov_id': session_gov_id,
             'name': session_name,
             'start_date': start_date,

@@ -8,11 +8,13 @@ class PersonParser(BaseParser):
     def __init__(self, item, reference):
         # call init of parent object
         super(PersonParser, self).__init__(reference)
-        self.name = item['name'] 
+        self.name = item['name']
         self.area = item['area']
         #self.education = item['education']
         self.party = item['party']
+        self.klub = item['klub']
         self.wbs = item['wbs']
+        self.person_type = item['type']
         print(self.name)
         try:
             self.start_time = parse_date(item['start_time']).isoformat()
@@ -27,6 +29,7 @@ class PersonParser(BaseParser):
         }
 
         if self.get_person_id(self.name):
+            print("Alredy exists")
             pass
         else:
             self.get_person_data(item)
@@ -47,10 +50,30 @@ class PersonParser(BaseParser):
             #education=edu,
             #birth_date=self.birth_date
         )
+        print(self.person_type)
 
-        party_id = self.add_organization(self.party, "party")
-
-        membership_id = self.add_membership(person_id, party_id, 'member', 'cl', self.start_time)
+        if self.person_type.startswith("Poslanici"):
+            party_id = self.add_organization(self.party, "party")
+            core_org = self.reference.commons_id
+        else:
+            party_id = self.add_organization(self.klub, "club")
+            core_org = self.reference.people_id
+        print(party_id)
+        self.add_membership(
+            person_id,
+            party_id,
+            'member',
+            'cl',
+            self.start_time
+        )
+        self.add_membership(
+            person_id,
+            core_org,
+            'voter',
+            'cl',
+            self.start_time,
+            on_behalf_of=party_id
+        )
 
         if 'wbs' in item.keys():
             for typ, names in self.wbs.items():

@@ -29,6 +29,7 @@ from .data_parser.utils import get_vote_key, fix_name, get_person_id
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html travnja
 
 COMMONS_ID = 1
+PEOPLE_ID = 51
 
 class BihImagesPipeline(ImagesPipeline):
     members = {}
@@ -70,6 +71,7 @@ class BihImagesPipeline(ImagesPipeline):
 class BihParserPipeline(object):
     value = 0
     commons_id = COMMONS_ID
+    people_id = PEOPLE_ID
     others = 2
     local_data = {}
     members = {}
@@ -169,13 +171,9 @@ class BihParserPipeline(object):
         print('PIPELINE is READY')
 
     def process_item(self, item, spider):
-        #PEOPLE PARSER
-        print(spider)
+        #return item
         if type(spider) == PeopleSpider:
-            # TODO create person parser class (like speech, vote...)
-            print("PPEPPEL")
-            if item['type'] =='mp':
-                PersonParser(item, self)
+            PersonParser(item, self)
         elif type(spider) == ClubSpider:
             print("club_spider")
             ClubParser(item, self)
@@ -186,144 +184,9 @@ class BihParserPipeline(object):
         elif type(spider) == SessionSpider:
             SessionParser(item, self)
         else:
-            for party_id, klub in self.klubovi.items():
-                if klub == item['name']:
-                    for g in item['groups']:
-                        role = g['role'].replace(':', '').lower()
-                        for prson in g['members']:
-                            name = ' '.join(reversed(prson.split(', '))).strip()
-                            replace_str = ['prof. dr. sc.', 'doc. dr. sc.', 'univ. spec.', 'dr. sc.', 'mr. sc.', 'akademik']
-                            for rep in replace_str:
-                                if rep in name:
-                                    name = name.replace(rep, '').strip()
-
-                            person_id = get_person_id(self.members, name)
-                            if person_id:
-                                #pass
-                                self.add_membership(person_id, party_id, role, 'cl', self.mandate_start_time.isoformat())
-                            else:
-                                print("FAILLL, nisem najdu", prson, '|'+name+'|')
-                    break
-
 
             return item
-    # GET OR ADD
 
-    # TODO fix adding visitors or members in past of this reference
-    def get_person(self, name):
-        if name in self.members.keys():
-            person_id = self.members[name]
-        else:
-            """
-            response = requests.post(API_URL + 'persons/',
-                                     json={"name": name,
-                                           "start_time": date,
-                                           "organization": self.commons_id,
-                                           "organizations": [self.commons_id],
-                                           "in_review": False,},
-                                     auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
-                                    )
-            """
-            print("NEWWW PERSON  check it: ", name)
-            try:
-                person_id = response.json()['id']
-                self.members[name] = person_id
-            except Exception as e:
-                print(e, response.json())
-                return None
-        return person_id
-
-    def get_session(self, name, date):
-        if name in self.sessions.keys():
-            session_id = self.sessions[name]
-        else:
-            response = requests.post(API_URL + 'sessions/',
-                                     json={"name": name,
-                                           "start_time": date,
-                                           "organization": self.commons_id,
-                                           "organizations": [self.commons_id],
-                                           "in_review": False,},
-                                     auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
-                                    )
-            try:
-                session_id = response.json()['id']
-                self.sessions[name] = session_id
-            except Exception as e:
-                print(e, response.json())
-                return None
-        return session_id
-
-
-    def get_agenda_item(self, name, date, session_id):
-        key = get_vote_key(name, date)
-        if key in self.agenda_items.keys():
-            item_id = self.agenda_items[key]
-        else:
-            response = requests.post(API_URL + 'agenda-items/',
-                                     json={"name": name.strip(),
-                                           "date": date,
-                                           "session": session_id},
-                                     auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
-                                    )
-            try:
-                item_id = response.json()['id']
-                self.agenda_items[key] = item_id
-            except Exception as e:
-                print(e, response.json())
-                return None
-        return item_id
-
-
-    def add_organization(self, name, classification):
-        if name.strip() in self.parties.keys():
-            party_id = self.parties[name.strip()]
-        else:
-            response = requests.post(API_URL + 'organizations/',
-                                     json={"_name": name.strip(),
-                                           "name": name.strip(),
-                                           "name_parser": name.strip(),
-                                           "_acronym": name[:100],
-                                           "classification": classification},
-                                     auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
-                                    )
-
-            try:
-                party_id = response.json()['id']
-                self.parties[name.strip()] = party_id
-            except Exception as e:
-                print(e, response.json())
-                return None
-
-        return party_id
-
-    def add_membership(self, person_id, party_id, role, label, start_time):
-        response = requests.post(API_URL + 'memberships/',
-                                 json={"person": person_id,
-                                       "organization": party_id,
-                                       "role": role,
-                                       "label": label,
-                                       "start_time": start_time},
-                                 auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
-                                )
-        membership_id = response.json()['id']
-        return membership_id
-
-## CLASSES
-
-
-## HELPER METHODS
-
-def getDataFromPagerApi(url, per_page = None):
-    data = []
-    end = False
-    page = 1
-    while not end:
-        response = requests.get(url + '?page=' + str(page) + ('&per_page='+str(per_page) if per_page else '')).json()
-        data += response['data']
-        if page >= response['pages']:
-            break
-        page += 1
-    return data
 
 def getDataFromPagerApiDRF(url):
     print(url)
