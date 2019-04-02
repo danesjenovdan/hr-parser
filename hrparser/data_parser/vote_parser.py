@@ -102,7 +102,7 @@ class BallotsParser(BaseParser):
 
             # parse data
             self.parse_time()
-            
+
 
             if self.is_motion_saved():
                 # TODO edit motion if we need it make force_render mode
@@ -113,7 +113,7 @@ class BallotsParser(BaseParser):
                 vote_id = self.get_vote_id()
 
                 print("patching motion", motion_id, 'and vote', vote_id)
-                
+
                 response = requests.patch(
                     API_URL + 'motions/' + str(motion_id) + '/',
                     json=self.motion,
@@ -134,7 +134,7 @@ class BallotsParser(BaseParser):
             else:
                 # add new motion
                 self.parse_results()
-                
+
 
                 # run setters
                 self.set_data()
@@ -159,7 +159,7 @@ class BallotsParser(BaseParser):
         if line_ids:
             if self.source_data['type'] == 'vote_ballots':
                 offset = len(line_ids)-self.source_data['m_items']
-                return (line_ids[self.source_data['c_item']+offset] - 1)
+                return (line_ids[self.source_data['c_item'] + offset] - 1)
             else:
                 return line_ids[-1]
         else:
@@ -176,7 +176,7 @@ class BallotsParser(BaseParser):
             i = 0
             found = None
             for i, line in enumerate(data):
-                line = line.replace(',', '')
+                line = line.replace(',', '').replace(u'\xa0', ' ')
                 splited_line = line.split(" ")
                 for word in voting_words:
                     if word in splited_line:
@@ -249,7 +249,7 @@ class BallotsParser(BaseParser):
             self.motion['result'] = 0
         else:
             raise ValueError("VOTE RESULT IS SOMETHING ELSE: ", pre_result, post_result)
-                    #print("VOTE RESULT IS SOMETHING ELSE: ")      
+                    #print("VOTE RESULT IS SOMETHING ELSE: ")
 
 
     def parse_time(self):
@@ -363,7 +363,10 @@ class BallotsParser(BaseParser):
         splited = data.split(' ')
         j_data = {}
         if 'jednoglasno' in data:
-            option = replace_nonalphanum(splited[3])
+            i=3
+            if splited[3] in ['glas', 'glasova']:
+                i=4
+            option = replace_nonalphanum(splited[i])
             votes = splited[1]
 
             j_data = {opt_map[option]: votes}
@@ -389,9 +392,9 @@ def replace_nonalphanum(word):
     return word
 
 
-def find_epa_in_name(name):                                                                                   
-    search_epa = re.compile(r'(\d+)')                 
-    if 'P.Z.' in name:               
+def find_epa_in_name(name):
+    search_epa = re.compile(r'(\d+)')
+    if 'P.Z.' in name:
         new_text = name.split('P.Z.')[1]
         a = search_epa.search(new_text.strip())
         if a:
