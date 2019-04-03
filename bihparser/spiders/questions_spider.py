@@ -15,7 +15,8 @@ class QuestionsSpider(scrapy.Spider):
     }
 
     start_urls = [
-        'http://parlament.ba/oQuestion/GetORQuestions?RDId=&MandateId=4&DateFrom=&DateTo=',
+        'http://parlament.ba/oQuestion/GetORQuestions',
+        'http://parlament.ba/oQuestion/GetODQuestions',
     ]
     base_url = 'http://parlament.ba'
 
@@ -30,6 +31,7 @@ class QuestionsSpider(scrapy.Spider):
     }
 
     def parse(self, response):
+        questions_of = response.css(".article header h1::text").extract_first()
         for link in response.css('.list-articles li a::attr(href)').extract():
             yield scrapy.Request(url=self.base_url + link, callback=self.question_parser)
 

@@ -170,7 +170,7 @@ class BaseParser(object):
                                                "classification": classification},
                                          auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
                                         )
-                
+
                 try:
                     party_id = response.json()['id']
                     self.reference.parties[name.strip()] = party_id
@@ -199,14 +199,14 @@ class BaseParser(object):
         memberships = self.reference.memberships
         if person_id in memberships.keys():
             # person in member of parliamnet
-            mems = memberships[person_id]
+            mems = memberships[str(person_id)]
             for mem in mems:
                 start_time = datetime.strptime(mem['start_time'], "%Y-%m-%dT%H:%M:%S")
                 if start_time <= search_date:
                     if mem['end_time']:
                         end_time = datetime.strptime(mem['end_time'], "%Y-%m-%dT%H:%M:%S")
                         if end_time >= search_date:
-                            return mem['on_behalf_of_id']
+                            return mem['on_behalf_of']
                     else:
-                        return mem['on_behalf_of_id']
+                        return mem['on_behalf_of']
         return None

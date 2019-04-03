@@ -50,21 +50,18 @@ class SessionSpider(scrapy.Spider):
             if key == 'Rezultati glasanja' and link:
                 # parse votes
                 file_name = str(session_gov_id) + '-votes.pdf'
-                data['votes'] = file_name
-                yield scrapy.Request(
-                        url=self.base_url + link,
-                        callback=self.save_pdf,
-                        meta={'name': file_name}
-                    )
+                data['votes'] = {
+                    'file_name': file_name,
+                    'url': self.base_url + link
+                }
+
             elif key == 'Stenogram' and link:
                 # parse speeches
                 file_name = str(session_gov_id) + '-speeches.pdf'
-                data['speeches'] = file_name
-                yield scrapy.Request(
-                        url=self.base_url + link,
-                        callback=self.save_pdf,
-                        meta={'name': file_name}
-                    )
+                data['speeches'] = {
+                    'file_name': file_name,
+                    'url': self.base_url + link
+                }
         yield data
 
     def save_pdf(self, response):

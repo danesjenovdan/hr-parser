@@ -164,7 +164,13 @@ class BihParserPipeline(object):
             self.acts[item['uid']] = {'id': item['id'], 'ended': item['procedure_ended']}
 
         print('pipeline get memberships')
-        items = requests.get(API_URL + 'getParliamentMembershipsOfMembers').json()
+        items = {}
+        for mem in getDataFromPagerApiDRF(API_URL + 'memberships/?role=voter'):
+            if str(mem['person']) in items.keys():
+                items[str(mem['person'])].append(mem)
+            else:
+                items[str(mem['person'])] = [mem]
+
         self.memberships = items
         print('Memberships', self.memberships)
 
@@ -193,9 +199,13 @@ def getDataFromPagerApiDRF(url):
     data = []
     end = False
     page = 1
-    url = url+'?limit=300'
+    if '?' in url:
+        url = url+'&limit=300'
+    else:
+        url = url+'?limit=300'
     while url:
         response = requests.get(url, auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])).json()
+        print(response)
         data += response['results']
         url = response['next']
     return data

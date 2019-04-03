@@ -9,6 +9,7 @@ import requests
 import pdftotext
 import copy
 import re
+import time
 
 class SessionParser(BaseParser):
     def __init__(self, item, reference):
@@ -56,9 +57,7 @@ class SessionParser(BaseParser):
 
         if 'speeches' in item.keys():
             #TODO skip parsing speeches already parsed
-            content_parser = ContentParser("files/"+item['speeches'])
-            #print(content_parser.speeches)
-            print(start_time)
+            content_parser = ContentParser(item['speeches'])
 
             for order, parsed_speech in enumerate(content_parser.speeches):
 
@@ -84,14 +83,12 @@ class SessionParser(BaseParser):
                                      auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
                                     )
         if 'votes' in item.keys():
-            print('\n', 'VOTES in a KEY', '\n')
             if item['session_of'] == 'Dom naroda':
-                votes_parser = VotesParserPeople("files/"+item['votes'])
+                votes_parser = VotesParserPeople(item['votes'])
             elif item['session_of'] == 'Predstavnički dom':
-                votes_parser = VotesParser("files/"+item['votes'])
+                votes_parser = VotesParser(item['votes'])
 
             for order, parsed_vote in enumerate(votes_parser.votes):
-                print('PARSE', parsed_vote, len(parsed_vote))
                 if 'name' in parsed_vote.keys():
                     name = parsed_vote['name']
                 else:
@@ -123,12 +120,10 @@ class SessionParser(BaseParser):
                         motion_data
                     )
                     vote_data['motion'] = motion_id
-                    print('Adding vote::::........')
                     vote_id, vote_status = self.add_or_get_vote(vote_key, vote_data)
                     ballots = []
 
                     for ballot in parsed_vote['ballots']:
-                        print(ballot['name'])
                         voter_id = self.get_or_add_person(
                             fix_name(ballot['name']),
                         )
@@ -151,18 +146,26 @@ class SessionParser(BaseParser):
             if '- ' in epa_str:
                 epa_str = epa_str.replace('- ', '-')
             epa = epa_str.split(' ')
-            print(epa[0])
             if epas:
                 epas = epas + '|' +epa[0]
             else:
                 epas = epa[0]
 
+class get_PDF(object):
+    def __init__(self, url, file_name):
+        response = requests.get(url)
+        with open('files/'+file_name, 'wb') as f:
+            f.write(response.content)
 
-class ContentParser(object):
-    def __init__(self, file_name):
-        with open(file_name, "rb") as f:
-            pdf = pdftotext.PDF(f)
-        content = "".join(pdf)
+        with open('files/'+file_name, "rb") as f:
+            self.pdf = pdftotext.PDF(f)
+
+class ContentParser(get_PDF):
+    def __init__(self, obj):
+        super().__init__(obj['url'], obj['file_name'])
+        response = requests.get(obj['url'])
+
+        content = "".join(self.pdf)
         self.content = content.split('\n')
         self.state = 'start'
         self.speeches = []
@@ -202,12 +205,15 @@ class ContentParser(object):
 
 
 
-class VotesParser(object):
-    def __init__(self, file_name):
+class VotesParser(get_PDF):
+    def __init__(self, obj):
         self.VOTE_MAP = {'Protiv': 'against', 'Za': 'for', 'Nije glasao': 'abstain', 'Suzdržan': 'abstain', 'Nije prisutan': 'absent'}
-        with open(file_name, "rb") as f:
-            pdf = pdftotext.PDF(f)
-        content = "".join(pdf)
+
+        super().__init__(obj['url'], obj['file_name'])
+        response = requests.get(obj['url'])
+
+        content = "".join(self.pdf)
+
         self.content = content.split('\n')
         self.state = 'start'
         self.votes = []
@@ -304,12 +310,15 @@ class VotesParser(object):
             return line.strip()
 
 
-class VotesParserPeople(object):
-    def __init__(self, file_name):
+class VotesParserPeople(get_PDF):
+    def __init__(self, obj):
         self.VOTE_MAP = {'PROTIV': 'against', 'ZA': 'for', 'NIJE PRISUTAN': 'abstain', 'SUZDRŽAN': 'abstain'}
-        with open(file_name, "rb") as f:
-            pdf = pdftotext.PDF(f)
-        content = "".join(pdf)
+
+        super().__init__(obj['url'], obj['file_name'])
+        response = requests.get(obj['url'])
+
+        content = "".join(self.pdf)
+
         self.content = content.split('\n')
         self.state = 'start'
         self.votes = []
@@ -324,8 +333,6 @@ class VotesParserPeople(object):
         self.found_keyword = False
 
         for line in self.content:
-            print(line)
-            #print(self.state, self.num_of_lines, self.found_keyword)
             line = line.strip()
             if re.split("\s\s+", line.strip()) == ['ZA', 'PROTIV', 'SUZDRŽAN', 'NIJE PRISUTAN', 'UKUPNO']:
                 self.state = 'start'
@@ -390,6 +397,5 @@ class VotesParserPeople(object):
                     current_vote['ballots'].append(self.parse_ballot(line))
 
     def parse_ballot(self, line):
-        print(repr(line))
         name, temp2, option = re.split("\s\s+", line)
         return {'name': name, 'option': self.VOTE_MAP[option]}
