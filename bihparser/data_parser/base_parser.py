@@ -114,7 +114,7 @@ class BaseParser(object):
             json=json_data,
             auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
         )
-        print(response.content)
+        #print(response.content)
 
     def add_or_get_session(self, session_name, json_data):
         if session_name:
