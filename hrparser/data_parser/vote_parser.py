@@ -176,7 +176,7 @@ class BallotsParser(BaseParser):
             i = 0
             found = None
             for i, line in enumerate(data):
-                line = line.replace(',', '')
+                line = line.replace(',', '').replace(u'\xa0', ' ')
                 splited_line = line.split(" ")
                 for word in voting_words:
                     if word in splited_line:
@@ -358,12 +358,19 @@ class BallotsParser(BaseParser):
         }
         r=re.compile(r'\(.*\)')
         text = self.results_data
-        data = r.search(text[1]).group(0)
-        data = data.replace('(','').replace(')','')
+        print(len(text))
+        if len(text)>1 and '(' in text[1]:
+            data = r.search(text[1]).group(0)
+        else:
+            data = r.search(text[0]).group(0)
+        data = data.replace('(','').replace(')','').replace(u'\xa0', ' ')
         splited = data.split(' ')
         j_data = {}
         if 'jednoglasno' in data:
-            option = replace_nonalphanum(splited[3])
+            i=3
+            if splited[3] in ['glas', 'glasova']:
+                i=4
+            option = replace_nonalphanum(splited[i])
             votes = splited[1]
 
             j_data = {opt_map[option]: votes}
