@@ -112,20 +112,20 @@ class BallotsParser(BaseParser):
                 motion_id = self.get_motion_id()
                 vote_id = self.get_vote_id()
 
-                print("patching motion", motion_id, 'and vote', vote_id)
+                #print("patching motion", motion_id, 'and vote', vote_id)
                 
                 response = requests.patch(
                     API_URL + 'motions/' + str(motion_id) + '/',
                     json=self.motion,
                     auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
                 )
-                print(response.status_code)
+                #print(response.status_code)
                 response = requests.patch(
                     API_URL + 'votes/' + str(vote_id) + '/',
                     json=self.vote,
                     auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
                 )
-                print(response.status_code)
+                #print(response.status_code)
                 """
                 # TODO Delete this. Is here just for reparse ballots.
 
@@ -309,7 +309,7 @@ class BallotsParser(BaseParser):
                     'voterparty': self.reference.others
                 }
                 data.append(temp)
-        print("tuk je ballotov", len(data))
+        #print("tuk je ballotov", len(data))
         self.add_ballots(data)
 
     def set_data(self):
@@ -358,7 +358,7 @@ class BallotsParser(BaseParser):
         }
         r=re.compile(r'\(.*\)')
         text = self.results_data
-        print(len(text))
+        #print(len(text))
         if len(text)>1 and '(' in text[1]:
             data = r.search(text[1]).group(0)
         else:
@@ -402,6 +402,6 @@ def find_epa_in_name(name):
         new_text = name.split('P.Z.')[1]
         a = search_epa.search(new_text.strip())
         if a:
-            print(a.group(0))
+            #print(a.group(0))
             return a.group(0)
     return None
