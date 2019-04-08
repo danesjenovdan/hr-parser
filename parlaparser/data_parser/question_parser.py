@@ -90,5 +90,5 @@ class QuestionParser(BaseParser):
                     if link['url']:
                         if 'Besedilo' in link['title']:
                             link['question'] = question_id
-                            link['url'] = link['url']
+                            link['note'] = link['title']
                             self.add_link(link)
