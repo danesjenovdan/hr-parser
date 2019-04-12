@@ -82,10 +82,11 @@ class HrparserPipeline(object):
     agenda_items = {}
     orgs = {}
     klubovi = {}
-    
+
     added_session = {}
     added_votes = {}
     added_links = {}
+    votes_without_ballots = {}
 
     sessions = {}
     motions = {}
@@ -122,6 +123,9 @@ class HrparserPipeline(object):
         for vote in votes:
             self.votes[get_vote_key(vote['name'], vote['start_time'])] = vote['id']
             self.votes_dates[vote['id']] = vote['start_time']
+            if not vote['results']['absent'] and not vote['results']['abstain'] and not vote['results']['against'] and vote['results']['for']:
+                self.votes_without_ballots[get_vote_key(vote['name'], vote['start_time'])] = vote['id']
+
 
         print('pipeline get districts')
         areas = getDataFromPagerApiDRF(API_URL + 'areas')
@@ -204,7 +208,7 @@ class HrparserPipeline(object):
                             else:
                                 print("FAILLL, nisem najdu", prson, '|'+name+'|')
                     break
-                    
+
 
             return item
     # GET OR ADD
@@ -286,7 +290,7 @@ class HrparserPipeline(object):
                                            "classification": classification},
                                      auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
                                     )
-            
+
             try:
                 party_id = response.json()['id']
                 self.parties[name.strip()] = party_id
@@ -336,5 +340,3 @@ def getDataFromPagerApiDRF(url):
         data += response['results']
         url = response['next']
     return data
-
-
