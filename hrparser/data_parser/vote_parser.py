@@ -76,7 +76,12 @@ class BallotsParser(BaseParser):
 
             if self.is_motion_saved():
                 # vote allready exists
-                pass
+                # check if vote has ballots
+                if get_vote_key(self.vote['name'], self.vote['start_time']) in self.reference.votes_without_ballots.keys():
+                    if self.ballots:
+                        vote_id = self.reference.votes_without_ballots[get_vote_key(self.vote['name'], self.vote['start_time'])]
+                        self.parse_ballots(vote_id)
+
             else:
                 #if len(self.results_data) > 2:
                 #    # skip this shit

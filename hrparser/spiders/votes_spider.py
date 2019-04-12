@@ -67,7 +67,7 @@ class VotesSpider(scrapy.Spider):
         motion_data = None
         # if is link Rezultati glasovanja than call ajax for ballots url
         try:
-            motion_data = requests.get('http://sabor.hr/hr/videosnimka-rasprave/'+tid+'/').json()
+            motion_data = requests.get('http://sabor.hr/hr/videosnimka-rasprave/'+tid+'/', verify=False).json()
         except:
             pass
         if motion_data and 'glasovanje_link' in motion_data.keys() and motion_data['glasovanje_link']:
