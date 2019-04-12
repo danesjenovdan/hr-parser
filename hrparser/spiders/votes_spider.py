@@ -29,7 +29,8 @@ class VotesSpider(scrapy.Spider):
             'view_display_id': 'dnevni_redovi',
             'field_saziv_target_id': '170',
         }
-        url = 'http://www.sabor.hr/hr/views/ajax?_wrapper_format=drupal_ajax'
+        print(data)
+        url = 'https://www.sabor.hr/hr/views/ajax?_wrapper_format=drupal_ajax'
         for select in response.css('[name="plenarna_id"] option')[:2]:
             value=select.css("::attr(value)").extract_first()
             if value:
