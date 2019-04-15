@@ -11,7 +11,7 @@ class VotesSpider(scrapy.Spider):
         'ITEM_PIPELINES': {
             'hrparser.pipelines.HrparserPipeline': 1,
         }
-    }   
+    }
     BASE_URL = 'http://www.sabor.hr'
     start_urls = [
         'http://www.sabor.hr/hr/sjednice/pregled-dnevnih-redova',
@@ -72,6 +72,8 @@ class VotesSpider(scrapy.Spider):
             pass
         if motion_data and 'glasovanje_link' in motion_data.keys() and motion_data['glasovanje_link']:
             tilte = motion_data['naziv']
+            if title[-1] == ';':
+                title = title[:-1]
             gov_id = motion_data['glasovanje_id']
             ballots_link = [motion_data['glasovanje_link']]
         else:
