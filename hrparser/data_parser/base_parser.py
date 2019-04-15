@@ -53,7 +53,7 @@ class BaseParser(object):
                 person_data['education'] = education
             if birth_date:
                 person_data['birth_date'] = birth_date
-            print('Adding person', person_data)
+            #print('Adding person', person_data)
             response = requests.post(
                 API_URL + 'persons/',
                 json=person_data,
@@ -104,7 +104,7 @@ class BaseParser(object):
             json=json_data,
             auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
         )
-        print(response.text)
+        #print(response.text)
 
     def add_ballots(self, json_data):
         print("SENDING BALLOTS")
@@ -124,11 +124,11 @@ class BaseParser(object):
 
     def parse_edoc_person(self, data):
         splited = data.split('(')
-        print(splited)
+        #print(splited)
         name = splited[0]
         if len(splited) > 1:
             pg = splited[1].split(')')[0]
-            print(pg)
+            #print(pg)
         else:
             # ministers names are splited with /
             splited = data.split('/')

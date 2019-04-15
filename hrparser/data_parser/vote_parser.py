@@ -3,7 +3,7 @@ from .utils import get_vote_key
 
 from ..settings import API_URL, API_AUTH, API_DATE_FORMAT
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import requests
 import re
@@ -77,11 +77,12 @@ class BallotsParser(BaseParser):
             if self.is_motion_saved():
                 # vote allready exists
                 # check if vote has ballots
-                if get_vote_key(self.vote['name'], self.vote['start_time']) in self.reference.votes_without_ballots.keys():
-                    if self.ballots:
-                        vote_id = self.reference.votes_without_ballots[get_vote_key(self.vote['name'], self.vote['start_time'])]
-                        self.parse_ballots(vote_id)
-
+                #self.parse_time_from_result_data()
+                #if get_vote_key(self.vote['name'], self.vote['start_time']) in self.reference.votes_without_ballots.keys():
+                #    if self.ballots:
+                #        vote_id = self.reference.votes_without_ballots[get_vote_key(self.vote['name'], self.vote['start_time'])]
+                #        self.parse_ballots(vote_id)
+                pass
             else:
                 #if len(self.results_data) > 2:
                 #    # skip this shit
@@ -112,6 +113,16 @@ class BallotsParser(BaseParser):
             if self.is_motion_saved():
                 # TODO edit motion if we need it make force_render mode
                 print("This motion is allready parsed")
+                print(self.vote['name'])
+                print(get_vote_key(self.vote['name'], self.vote['start_time']))
+                #self.parse_time_from_result_data()
+                c_time = self.time_f - timedelta(hours=self.time_f.hour, minutes=self.time_f.minute)
+                if get_vote_key(self.vote['name'], c_time.isoformat()) in self.reference.votes_without_ballots.keys():
+                    print("_____ This vote has no ballots")
+                    if self.ballots:
+                        print("-------------- has balots for parse")
+                        vote_id = self.reference.votes_without_ballots[get_vote_key(self.vote['name'], c_time.isoformat())]
+                        self.parse_ballots(vote_id)
                 """
                 self.parse_results()
                 motion_id = self.get_motion_id()

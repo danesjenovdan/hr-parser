@@ -111,6 +111,8 @@ class VotesSpider(scrapy.Spider):
             option = vote.css("td::text")[1].extract()
             ballots.append({'voter': name, 'option': option})
         data = response.meta['data']
+        if title[-1] == ';':
+            title = title[:-1]
         data.update({'title': title,
                      'time': time,
                      'results': result,

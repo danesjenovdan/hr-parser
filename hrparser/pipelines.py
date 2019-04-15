@@ -123,7 +123,7 @@ class HrparserPipeline(object):
         for vote in votes:
             self.votes[get_vote_key(vote['name'], vote['start_time'])] = vote['id']
             self.votes_dates[vote['id']] = vote['start_time']
-            if not vote['results']['absent'] and not vote['results']['abstain'] and not vote['results']['against'] and vote['results']['for']:
+            if vote['results']['absent'] + vote['results']['abstain'] + vote['results']['against'] + vote['results']['for'] == 0:
                 self.votes_without_ballots[get_vote_key(vote['name'], vote['start_time'])] = vote['id']
 
 
