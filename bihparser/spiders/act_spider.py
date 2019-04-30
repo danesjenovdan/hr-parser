@@ -36,7 +36,7 @@ class ActSpider(scrapy.Spider):
         if next_page:
             yield scrapy.Request(url=self.base_url + next_page, callback=self.parse)
 
-    def legislation_parser(self, response):  
+    def legislation_parser(self, response):
         title = response.css(".article header h1::text").extract_first()
         uid = response.url.split('lawId=')[1].split('&')[0]
         data = {
@@ -45,7 +45,7 @@ class ActSpider(scrapy.Spider):
             'url': response.url
         }
         for line in response.css('.table-minus .table-docs tr'):
-            print(line.css('th').extract_first())
+            #print(line.css('th').extract_first())
             line_key = line.css('th::text').extract_first()
             if line_key:
                 for key in self.map_of_keys.keys():
@@ -53,5 +53,3 @@ class ActSpider(scrapy.Spider):
                         data[self.map_of_keys[key]] = line.css('td::text').extract_first()
 
         yield data
-
-        
