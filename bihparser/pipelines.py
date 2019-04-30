@@ -107,7 +107,7 @@ class BihParserPipeline(object):
             self.members[mp['name_parser']] = mp['id']
 
         print('pipeline parties')
-        print(API_URL + 'organizations/')
+        #print(API_URL + 'organizations/')
         paries = getDataFromPagerApiDRF(API_URL + 'organizations/')
         for pg in paries:
             self.orgs[pg['name_parser']] = pg['id']
@@ -117,7 +117,7 @@ class BihParserPipeline(object):
             if pg['classification'] == 'pg':
                 self.klubovi[pg['id']] = pg['_name']
 
-        print(self.parties)
+        #print(self.parties)
 
         print('pipeline getVotes')
         votes = getDataFromPagerApiDRF(API_URL + 'votes/')
@@ -138,7 +138,7 @@ class BihParserPipeline(object):
             if requests.get(API_URL + 'speechs?session='+str(session['id'])).json()['results']:
                 self.sessions_with_speeches.append(session['id'])
 
-        print('\n', self.sessions, '\n ')
+        #print('\n', self.sessions, '\n ')
 
         print('pipeline get motions')
         motions = getDataFromPagerApiDRF(API_URL + 'motions')
@@ -176,7 +176,7 @@ class BihParserPipeline(object):
                 items[str(mem['person'])] = [mem]
 
         self.memberships = items
-        print('Memberships', self.memberships)
+        #print('Memberships', self.memberships)
 
         print('PIPELINE is READY')
 
