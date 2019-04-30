@@ -94,6 +94,8 @@ class BihParserPipeline(object):
     questions = {}
     acts = {}
 
+    sessions_with_speeches = []
+
     memberships = {}
 
     mandate_start_time = datetime(day=1, month=12, year=2018)
@@ -133,6 +135,8 @@ class BihParserPipeline(object):
         for session in sessions:
             self.sessions[session['gov_id']] = session['id']
             self.sessions_by_name[session['name']] = session['id']
+            if requests.get(API_URL + 'speechs?session='+str(session['id'])).json()['results']:
+                self.sessions_with_speeches.append(session['id'])
 
         print('\n', self.sessions, '\n ')
 

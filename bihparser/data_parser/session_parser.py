@@ -55,7 +55,7 @@ class SessionParser(BaseParser):
             'valid_to': datetime.max.isoformat()
         }
 
-        if 'speeches' in item.keys():
+        if 'speeches' in item.keys() and self.session_id not in reference.sessions_with_speeches:
             #TODO skip parsing speeches already parsed
             content_parser = ContentParser(item['speeches'])
 
