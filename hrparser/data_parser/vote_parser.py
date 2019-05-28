@@ -113,6 +113,9 @@ class BallotsParser(BaseParser):
             if self.is_motion_saved():
                 # TODO edit motion if we need it make force_render mode
                 print("This motion is allready parsed")
+
+                # Uncoment this for parse votes withput ballots again
+                """
                 print(self.vote['name'])
                 print(get_vote_key(self.vote['name'], self.vote['start_time']))
                 #self.parse_time_from_result_data()
@@ -123,6 +126,7 @@ class BallotsParser(BaseParser):
                         print("-------------- has balots for parse")
                         vote_id = self.reference.votes_without_ballots[get_vote_key(self.vote['name'], c_time.isoformat())]
                         self.parse_ballots(vote_id)
+                """
                 """
                 self.parse_results()
                 motion_id = self.get_motion_id()
@@ -174,7 +178,7 @@ class BallotsParser(BaseParser):
         if line_ids:
             if self.source_data['type'] == 'vote_ballots':
                 offset = len(line_ids)-self.source_data['m_items']
-                return (line_ids[self.source_data['c_item'] + offset] - 1)
+                return (line_ids[self.source_data['c_item'] + offset])
             else:
                 return line_ids[-1]
         else:
@@ -239,7 +243,7 @@ class BallotsParser(BaseParser):
         if result_idx < 0:
             print('###############')
             print('#############################################')
-            print("DECISION FAIL: ", session_split, line_id, line_ids)
+            print("DECISION FAIL: ", session_split, line_id, line_ids, self.title)
             print('#############################################')
             print('###############')
             self.vote['result'] = None
