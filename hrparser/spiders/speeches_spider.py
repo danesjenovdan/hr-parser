@@ -17,7 +17,7 @@ class SpeechSpider(scrapy.Spider):
         'http://edoc.sabor.hr/Fonogrami.aspx',
         ]
 
-    def parse(self, response):       
+    def parse(self, response):
         num_pages = int(response.css("table.OptionsTable td span::text").extract()[2].strip().split(" ")[1])
 
         # limiter
@@ -26,11 +26,11 @@ class SpeechSpider(scrapy.Spider):
 
         for i in range(start_page, start_page + num_pages):
             form_data = self.validate(response)
-            
+
             # This is how edoc aspx backend works. callback param need to know how much digits has number
             special_aspx = len(str(i-1)) + 12
             callback_param = 'c0:KV|2;[];GB|' + str(special_aspx) + ';8|GOTOPAGE' + str(len(str(i-1))) + '|' + str(i-1) + ';'
-            
+
             form_data.update({
                 'ctl00$ContentPlaceHolder$gvFonogrami$PagerBarB$GotoBox': str(i),
                 '__CALLBACKID': 'ctl00$ContentPlaceHolder$gvFonogrami',
@@ -72,8 +72,11 @@ class SpeechSpider(scrapy.Spider):
 
     def parse_speeches(self, response):
         session_ref = response.css("#ctl00_ContentPlaceHolder_lblSazivSjednicaDatum::text").extract()
-        content_list = response.css(".contentList li::text").extract()
         date_of_session = response.css(".dateString::text").extract()[0].strip()
+        agendas = response.css("#ctl00_ContentPlaceHolder_rptMain_ctl00_divTileShape0")
+        agendas_nums = list(map(str.strip, agendas.css("#ctl00_ContentPlaceHolder_rptMain_ctl00_lblTdrBrojevi::text").extract_first().split(';')))
+        agenda_texts = list(map(str.strip, agendas.css(".contentList li::text").extract()))
+        agendas_dict = [{'order':i, 'text': j} for i, j in list(zip(agendas_nums, agenda_texts))]
         speech_date = date_of_session
         order = 0
         speeches = []
@@ -92,13 +95,16 @@ class SpeechSpider(scrapy.Spider):
                 content = '\n'.join(map(str.strip, line.css(".singleContent dd::text").extract()))
                 speaker = line.css(".speaker h2::text").extract()
                 order += 1
-                speeches.append({'order': order,
-                       'date': speech_date,
-                       'content_list': content_list,
-                       'session_ref': session_ref,
-                       'speaker': speaker,
-                       'content': content,
-                       'agenda_id': agenda_id})
-        yield {'speeches': speeches}
+                speeches.append({
+                    'order': order,
+                    'speaker': speaker,
+                    'content': content,
 
-        
+                   })
+        yield {
+            'date': speech_date,
+            'session_ref': session_ref,
+            'agenda_id': agenda_id,
+            'agendas': agendas_dict,
+            'speeches': speeches
+        }
