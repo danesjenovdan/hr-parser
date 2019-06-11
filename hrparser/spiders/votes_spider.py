@@ -48,7 +48,7 @@ class VotesSpider(scrapy.Spider):
         for line in my_response.css(".content li"):
             if line.css('.dnevni-red-stavka::attr(data-status)').extract_first()=='8': # if voteing is ended
                 url = line.css('a::attr(href)').extract_first()
-                print(url)
+                #print(url)
                 yield scrapy.Request(url=self.BASE_URL + url, callback=self.parser_motion, meta={'parent': response.url, 'session_name': session_name})
 
 
