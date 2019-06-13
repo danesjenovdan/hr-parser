@@ -52,12 +52,12 @@ class SpeechParser(BaseParser):
             }
             agenda_id, agenda_method = self.get_agenda_item(agenda_key, agenda_json)
             self.agenda_ids.append(agenda_id)
-            print(agenda_method, agenda_text.strip())
+            #print(agenda_method, agenda_text.strip())
             methods.append(agenda_method)
 
         # skip addins speeches if some agenda_item already exists
         if not 'get' in methods:
-            print("SETTING", self.session_id)
+            #print("SETTING", self.session_id)
             for speech in speeches:
 
                 self.speaker = speech['speaker']
@@ -78,7 +78,8 @@ class SpeechParser(BaseParser):
         elif agenda_method == 'fail':
             print('agenda item set failed')
         else:
-            print('this agenda item allready parsed')
+            #print('this agenda item allready parsed')
+            pass
 
     def parse_time(self):
         self.speech['valid_from'] = self.date.isoformat()
