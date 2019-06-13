@@ -34,7 +34,8 @@ class QuestionParser(BaseParser):
 
         if self.is_question_saved():
             # TODO edit question if we need it make force_render mode
-            print("This question is already parsed")
+            #print("This question is already parsed")
+            pass
 
         else:
             # parse data

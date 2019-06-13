@@ -176,7 +176,7 @@ class ParlaparserPipeline(object):
 
     def process_item(self, item, spider):
         #PEOPLE PARSER
-        print(spider)
+        #print(spider)
         if type(spider) == QuestionsSpider:
             QuestionParser(item, self)
         # return item
