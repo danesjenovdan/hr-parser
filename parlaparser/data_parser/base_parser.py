@@ -28,8 +28,8 @@ class BaseParser(object):
                 obj_id = response.json()['id']
                 getattr(self.reference, dict_key)[value_key] = obj_id
             except Exception as e:
-                print(response.content)
-                print(endpoint, e, response.text, 'request was not delivered request was not delivered request was not delivered request was not delivered')
+                print("RESPONSE", response.content)
+                print("EXCEPTION", endpoint, e, response.text, 'request was not delivered request was not delivered request was not delivered request was not delivered')
                 return None, 'fail'
         return obj_id, 'set'
 
@@ -72,8 +72,9 @@ class BaseParser(object):
     def get_person_id(self, name):
         for key in self.reference.members.keys():
             for parser_name in key.split(','):
-                if editdistance.eval(name, parser_name) < 2:
+                if editdistance.eval(name, parser_name) == 0:
                     return self.reference.members[key]
+        print ("|" + name + "|")
         return None
 
     def add_or_get_motion(self, value_key, json_data):
