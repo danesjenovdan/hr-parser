@@ -69,12 +69,21 @@ class ActSpider(scrapy.Spider):
 
 
     def parse_acts(self, response):
-        reading = response.meta['reading']
+        reading = response.meta['reading'].strip()
         tab = '0'
         if reading == '2.':
             tab = '1'
-
         tab_id = "#ctl00_ContentPlaceHolder_ctrlAktView_pnlCitanje" + tab +"_ctl01"
+
+        if reading:
+            for content_tab in response.css("#ctl00_ContentPlaceHolder_ctrlAktView_pnlButtons span"):
+                text = i.css("::text").extract_first().strip()
+                if reading + ' čitanje' == text:
+                    tab_id = "#ctl00_ContentPlaceHolder_ctrlAktView_" + i.css("::attr(name)").extract_first() + "_ctl01"
+                    break
+
+
+
         #print(response.meta, tab_id)
 
         title = response.css(tab_id + "_lnkNazivAktaUProceduri *::text").extract()
