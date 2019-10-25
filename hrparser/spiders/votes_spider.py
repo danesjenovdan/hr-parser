@@ -48,7 +48,7 @@ class VotesSpider(scrapy.Spider):
         for line in my_response.css(".content li"):
             if line.css('.dnevni-red-stavka::attr(data-status)').extract_first()=='8': # if voteing is ended
                 url = line.css('a::attr(href)').extract_first()
-                print(url)
+                #print(url)
                 yield scrapy.Request(url=self.BASE_URL + url, callback=self.parser_motion, meta={'parent': response.url, 'session_name': session_name})
 
 
@@ -67,7 +67,7 @@ class VotesSpider(scrapy.Spider):
         motion_data = None
         # if is link Rezultati glasovanja than call ajax for ballots url
         try:
-            motion_data = requests.get('http://sabor.hr/hr/videosnimka-rasprave/'+tid+'/', verify=False).json()
+            motion_data = requests.get('http://sabor.hr/hr/rezultati-glasovanja/'+tid+'/', verify=False).json()
         except:
             pass
         if motion_data and 'glasovanje_link' in motion_data.keys() and motion_data['glasovanje_link']:

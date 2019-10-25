@@ -36,10 +36,10 @@ class QuestionParser(BaseParser):
             self.url = data['link'][0]
         else:
             self.url = None
-        print(data['typ'])
+        #print(data['typ'])
         if data['answear']:
             self.answear = data['answear'][0]
-            print(data['answear'])
+            #print(data['answear'])
         else:
             self.answear = None
 
@@ -50,8 +50,8 @@ class QuestionParser(BaseParser):
 
         if self.is_question_saved():
             # TODO edit question if we need it make force_render mode
-            print("This question is allready parsed")
-
+            #print("This question is allready parsed")
+            pass
         else:
             # parse data
             self.parse_time()

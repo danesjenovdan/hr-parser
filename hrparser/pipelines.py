@@ -140,7 +140,7 @@ class HrparserPipeline(object):
         print('pipeline get motions')
         motions = getDataFromPagerApiDRF(API_URL + 'motions')
         for motion in motions:
-            self.motions[motion['gov_id']] = motion['id']
+            self.motions[motion['gov_id'].split('//')[1]] = motion['id']
 
         """ # i think that this is unnecesery
         print('pipeline get districts')
