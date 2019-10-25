@@ -109,7 +109,10 @@ class ActParser(BaseParser):
         self.act['session'] = session_id
         self.act['text'] = self.title
         self.act['mdt'] = self.mdt
-        self.act['epa'] = self.epa
+        if self.epa:
+            self.act['epa'] = self.epa
+        else:
+            self.act['epa'] = self.uid
         self.act['uid'] = self.uid
         self.act['classification'] = 'zakon' if self.epa else 'akt'
 
