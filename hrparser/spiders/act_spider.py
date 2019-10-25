@@ -77,9 +77,9 @@ class ActSpider(scrapy.Spider):
 
         if reading:
             for content_tab in response.css("#ctl00_ContentPlaceHolder_ctrlAktView_pnlButtons span"):
-                text = i.css("::text").extract_first().strip()
+                text = content_tab.css("::text").extract_first().strip()
                 if reading + ' čitanje' == text:
-                    tab_id = "#ctl00_ContentPlaceHolder_ctrlAktView_" + i.css("::attr(name)").extract_first() + "_ctl01"
+                    tab_id = "#ctl00_ContentPlaceHolder_ctrlAktView_" + content_tab.css("::attr(name)").extract_first() + "_ctl01"
                     break
 
 
