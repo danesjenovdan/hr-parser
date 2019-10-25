@@ -16,7 +16,7 @@ class ActSpider(scrapy.Spider):
         'http://edoc.sabor.hr/Akti.aspx',
         ]
 
-    def parse(self, response):       
+    def parse(self, response):
         num_pages = int(response.css("table.OptionsTable td span::text").extract()[2].strip().split(" ")[1])
 
         # limiter
@@ -25,11 +25,11 @@ class ActSpider(scrapy.Spider):
         for i in range(1, num_pages + 1):
             print("PAGE: ", i)
             form_data = self.validate(response)
-            
+
             # This is how edoc aspx backend works. callback param need to know how much digits has number
             special_aspx = len(str(i-1)) + 12
             callback_param = 'c0:KV|101;["2022639","2022640","2022641","2022642","2022643","2022644","2022645","2022635","2022632","2022630"];GB|' + str(special_aspx) + ';8|GOTOPAGE' + str(len(str(i-1))) + '|' + str(i-1) + ';'
-            
+
             form_data.update({
                 'ctl00$ContentPlaceHolder$gvAkti$PagerBarB$GotoBox': str(i),
                 '__CALLBACKID': 'ctl00$ContentPlaceHolder$gvAkti',
@@ -75,7 +75,7 @@ class ActSpider(scrapy.Spider):
             tab = '1'
 
         tab_id = "#ctl00_ContentPlaceHolder_ctrlAktView_pnlCitanje" + tab +"_ctl01"
-        print(response.meta, tab_id)
+        #print(response.meta, tab_id)
 
         title = response.css(tab_id + "_lnkNazivAktaUProceduri *::text").extract()
         mdt = response.css(tab_id + "_lblPredlagatelj *::text").extract()
@@ -88,6 +88,9 @@ class ActSpider(scrapy.Spider):
         voting = response.css(tab_id + "_lblNacinIzglasavanja *::text").extract()
         ballots = response.css(tab_id + "_lblZaProtivSuzdrano *::text").extract()
         result = response.css(tab_id + "_lblZaProtivSuzdrano *::text").extract()
+
+        #text if is poveučen
+        remark = response.css("#ctl00_ContentPlaceHolder_ctrlAktView_pnlNapomena1_ctl01_lblNapomena::text").extract()
 
         pub_title = response.css("#ctl00_ContentPlaceHolder_ctrlAktView_pnlObjava1_ctl01_lblNazivObjavljenogAkta *::text").extract()
 
@@ -112,6 +115,5 @@ class ActSpider(scrapy.Spider):
                'pdf': pdf,
                'status': status,
                'epa': epa,
-               'uid': uid}
-        
-        
+               'uid': uid,
+               'remark': remark}

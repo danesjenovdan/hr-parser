@@ -35,9 +35,10 @@ class ActParser(BaseParser):
             #"date_vote": ["\r\n                        \r\n                        ", "25.11.2016.", "\r\n                        ", "\r\n                        ", "\r\n\t\t\t\t\t\r\n                            \r\n                            ", "\r\n                        \r\n\t\t\t\t", "\r\n                    "],
             #"result": ["81/8/22"],
             #"status": ["donesen i objavljen"],
+            #"remark": ["Dana 02. listopada 2019. predlagatelj je povukao Prijedlog odluke iz procedure."],
             "dates": ["24.11.2016.; 25.11.2016."]},
         """
-        # call init of parent object        
+        # call init of parent object
         super(ActParser, self).__init__(reference)
 
 
@@ -53,8 +54,15 @@ class ActParser(BaseParser):
         try:
             self.date = max([datetime.strptime(date, API_DATE_FORMAT + '.')  for date in dates])
         except:
-            self.date = datetime(day=1, month=1, year=2000)
-        #self.date = datetime.strptime(self.text_date, API_DATE_FORMAT + '.')
+            if data['remark']:
+                special_date = data['remark'][0].split(' ')[1:4]
+                day = re.sub('[^A-Za-z0-9]+', '', special_date[0])
+                month = self.get_month_by_name(special_date[1])
+                year = re.sub('[^A-Za-z0-9]+', '', special_date[2])
+                self.date = datetime(day=int(day), month=int(month), year=int(year))
+            else:
+                self.date = None
+
         self.mdt = data['mdt'][0]
         self.session_name = data['ref_ses'][0].split('-')[1]
         if '.' in self.session_name:
@@ -66,7 +74,7 @@ class ActParser(BaseParser):
         self.results = data['result'][0]
         self.pdf = data['pdf'][0]
         self.status = data['status'][0]
-        self.epa = data['epa'][0] if data['epa'] else None 
+        self.epa = data['epa'][0] if data['epa'] else None
         self.uid = data['uid']
         try:
             self.voting = data['voting'][0]
@@ -103,7 +111,7 @@ class ActParser(BaseParser):
         self.act['mdt'] = self.mdt
         self.act['epa'] = self.epa
         self.act['uid'] = self.uid
-        self.act['classification'] = 'zakon' if self.epa else 'akt' 
+        self.act['classification'] = 'zakon' if self.epa else 'akt'
 
         #if 'Vlada HR' in self.mdt:
         #    self.mdt = self.mdt.replace('HR')
@@ -164,7 +172,19 @@ class ActParser(BaseParser):
             ended = False
         self.reference.acts[uid] = {"id": act_id, "ended": ended}
 
-
-
-
-
+    def get_month_by_name(name):
+        month_names = [
+            'siječanja',
+            'veljače',
+            'ožujka',
+            'travnja',
+            'svibnja',
+            'lipnja',
+            'srpnja',
+            'kolovoza',
+            'rujna',
+            'listopada',
+            'studenoga',
+            'prosinca'
+        ]
+        return month_names.index(name) + 1
