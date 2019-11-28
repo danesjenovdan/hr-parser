@@ -6,6 +6,7 @@ from ..settings import API_URL, API_AUTH, API_DATE_FORMAT
 from datetime import datetime
 from requests.auth import HTTPBasicAuth
 import requests
+import re
 
 
 options_map = {
@@ -175,9 +176,9 @@ class ActParser(BaseParser):
             ended = False
         self.reference.acts[uid] = {"id": act_id, "ended": ended}
 
-    def get_month_by_name(name):
+    def get_month_by_name(self, name):
         month_names = [
-            'siječanja',
+            'siječnja',
             'veljače',
             'ožujka',
             'travnja',
