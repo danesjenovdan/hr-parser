@@ -82,6 +82,8 @@ class SessionParser(BaseParser):
                                      json=self.speeches,
                                      auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
                                     )
+            print(response.content)
+            print(response.status_code)
         if 'votes' in item.keys():
             if item['session_of'] == 'Dom naroda':
                 votes_parser = VotesParserPeople(item['votes'])
@@ -179,7 +181,7 @@ class ContentParser(get_PDF):
             #print(line)
             line = line.strip()
             if self.state == 'start':
-                if line in ['PREDSJEDAVAJUĆI', 'PREDSJEDATELJICA']:
+                if line in ['PREDSJEDAVAJUĆI', 'PREDSJEDATELJICA', 'PREDSJEDATELJ']:
                     self.state = 'parse'
                     continue
             elif self.state == 'parse':

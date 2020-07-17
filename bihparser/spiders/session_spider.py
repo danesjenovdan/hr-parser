@@ -18,8 +18,21 @@ class SessionSpider(scrapy.Spider):
         'http://parlament.ba/session/Read?ConvernerId=2',
         ]
     base_url = 'http://parlament.ba'
+
+    def __init__(self, house=None, gov_id=None, *args,**kwargs):
+        super(SessionSpider, self).__init__(*args, **kwargs)
+        self.house = house
+        self.gov_id = gov_id
+
     def parse(self, response):
         session_of = response.css(".article header h1::text").extract_first()
+
+        if self.house:
+            if self.house == 'lords' and session_of == 'Dom naroda':
+                return
+            elif self.house == 'people' and session_of == 'Predstavnički dom':
+                return
+
         for link in response.css('.list-articles li a::attr(href)').extract():
             yield scrapy.Request(url=self.base_url + link, callback=self.session_parser, meta={'session_of': session_of})
 
@@ -29,6 +42,11 @@ class SessionSpider(scrapy.Spider):
 
     def session_parser(self, response):
         session_gov_id = response.url.split('id=')[1].split('&')[0]
+
+        if self.gov_id:
+            if self.gov_id != session_gov_id:
+                return
+
         session_name = response.css('.article header h1::text').extract_first()
         start_date = ''.join([i.strip() for i in response.css('.schedule::text').extract()])
         start_time = response.css('.time::text').extract_first()
