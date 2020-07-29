@@ -152,6 +152,7 @@ class SessionParser(BaseParser):
                 epas = epas + '|' +epa[0]
             else:
                 epas = epa[0]
+        return epas
 
 class get_PDF(object):
     def __init__(self, url, file_name):
@@ -290,7 +291,12 @@ class VotesParser(get_PDF):
 
     def parse_ballot(self, line):
         #print(repr(line))
-        temp1, name, temp2, option = re.split("\s\s+", line)
+        try:
+            temp1, name, temp2, option = re.split("\s\s+", line)
+        except:
+            print('FAIL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            print(line)
+            raise Exception
         return {'name': name, 'option': self.VOTE_MAP[option]}
 
     def parse_multiline(self, line, keyword, next_state):
@@ -336,7 +342,10 @@ class VotesParserPeople(get_PDF):
 
         for line in self.content:
             line = line.strip()
-            if re.split("\s\s+", line.strip()) == ['ZA', 'PROTIV', 'SUZDRŽAN', 'NIJE PRISUTAN', 'UKUPNO']:
+            if re.split("\s\s*", line.strip()) == ['ZA', 'PROTIV', 'SUZDRŽAN', 'NIJE', 'PRISUTAN', 'UKUPNO']:
+                print(line)
+                print(re.split("\s\s*", line.strip()))
+                print(re.split("\s\s+", line.strip()))
                 self.state = 'start'
                 current_vote['agenda_item_name'] = ' '.join(current_vote['agenda_item_name'])
                 if current_vote['agenda_item_name'].endswith(";"):
@@ -350,20 +359,29 @@ class VotesParserPeople(get_PDF):
                 continue
 
             if self.state == 'start':
+                print('start')
                 if line.startswith('Rezultati glasanja'):
                     self.state = 'date'
                     continue
 
             elif self.state == 'date':
+                print('date')
                 current_vote['start_time'] = datetime.strptime(line, API_DATE_FORMAT + ' %H:%M:%S')
                 self.state = 'agenda'
                 continue
 
             elif self.state == 'agenda':
+                print('agenda')
                 if line.startswith('Dom:') or line.startswith('Sjednica:') or line.startswith('Način glasanja:'):
                     continue
                 if line.startswith('Redni broj:'):
                     line = line.replace("Redni broj:", "").strip()
+                    current_vote['agenda_item_name'].append(line)
+                if line.startswith('Redni broj glasanja: '):
+                    line = line.replace("Redni broj glasanja: ", "").strip()
+                    current_vote['agenda_item_name'].append(line)
+                if line.startswith('Redni broj'):
+                    line = line.replace("Redni broj", "").strip()
                     current_vote['agenda_item_name'].append(line)
                 elif line.startswith('Glasanje o:'):
                     self.state = 'voteing-about'
@@ -372,8 +390,10 @@ class VotesParserPeople(get_PDF):
 
 
             if self.state == 'voteing-about':
+                print('voting-about')
                 if line.startswith('Tip glasanja:'):
                     if 'poništeno' in line:
+                        print('ponisteno')
                         # skip this vote because it's repeted
                         current_vote = {'count': {}, 'ballots': [], 'agenda_item_name': [], 'name': []}
                         self.state = 'start'
@@ -384,6 +404,8 @@ class VotesParserPeople(get_PDF):
                 current_vote['name'].append(line.replace('Glasanje o:', '').strip())
 
             if self.state == 'parse':
+                print('parse')
+                print(line)
                 if line.startswith('Prisutno'):
                     current_vote['count']['absent'] = 15 - int(line[-5:].strip())
                 elif line.startswith('ZA'):
