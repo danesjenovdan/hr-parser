@@ -1,4 +1,4 @@
-from .base_parser import BaseParser
+from .base_parser_37 import BaseParser37
 from .utils import get_vote_key
 
 from ..settings import API_URL, API_AUTH, API_DATE_FORMAT
@@ -7,7 +7,7 @@ from datetime import datetime
 from requests.auth import HTTPBasicAuth
 import requests
 
-class SpeechParser(BaseParser):
+class SpeechParser(BaseParser37):
     def __init__(self, data, reference):
         """{"date": "20.04.2018.",
         "session_ref": ["Saziv: IX, sjednica: 8"],
@@ -29,7 +29,8 @@ class SpeechParser(BaseParser):
         }
         # get and set session
         session = data['session_ref'][0].split(':')[-1].strip()
-        self.session_ref = data['session_ref']
+        self.session_ref = data
+        session = session + ". sjednica"
         self.session['name'] = session
         self.session_id, session_status = self.add_or_get_session(session, self.session)
 

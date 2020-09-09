@@ -13,7 +13,7 @@ class PeopleSpider(scrapy.Spider):
     }
 
     start_urls = [
-        'http://www.sabor.hr/zastupnici-9',
+        'https://sabor.hr/hr/zastupnici/klubovi-zastupnika'
         ]
 
     def parse(self, response):

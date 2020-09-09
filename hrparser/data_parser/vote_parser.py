@@ -27,20 +27,33 @@ class BallotsParser(BaseParser):
               {"text": "AMANDMAN-Odbor za Ustav_izbor tri suca.pdf",
                "url": "/fgs.axd?id=50347"}]},
 
-{"results_data": ["Rasprava je zaklju\u010dena 25. studenoga 2016.", "\nOdluka je donesena na 2. sjednici 25. studenoga 2016. (", ")."],
-"results": "Ukupno: 94. Za: 77. Suzdr\u017ean: 8. Protiv: 9.",
-"parent": "http://www.sabor.hr/hr/views/ajax?_wrapper_format=drupal_ajax",
-"type": "vote_ballots", "date": "25.11.2016.",
-"ballots": [{"option": "-", "voter": "Aleksi\u0107 Goran"}, {"option": "+", "voter": "Ambru\u0161ec Ljubica"}, {"option": "+", "voter": "Anu\u0161i\u0107 Ivan"}, {"option": "+", "voter": "Ba\u010di\u0107 Branko"}, {"option": "+", "voter": "Bali\u0107 Marijana"}, {"option": "+", "voter": "Bari\u0161i\u0107 Dra\u017een"}, {"option": "+", "voter": "Batini\u0107 Milorad"}, {"option": "+", "voter": "Bauk Arsen"}, {"option": "o", "voter": "Bedekovi\u0107 Vesna"}, {"option": "+", "voter": "Beus Richembergh Goran"}, {"option": "+", "voter": "Bilek Vladimir"}, {"option": "+", "voter": "Bori\u0107 Josip"}, {"option": "+", "voter": "Bo\u0161njakovi\u0107 Dra\u017een"}, {"option": "+", "voter": "Brki\u0107 Milijan"}, {"option": "-", "voter": "Bulj Miro"}, {"option": "o", "voter": "Bunjac Branimir"}, {"option": "+", "voter": "Buri\u0107 Majda"}, {"option": "+", "voter": "Culej Stevo"}, {"option": "+", "voter": "\u010ci\u010dak Mato"}, {"option": "+", "voter": "\u0106osi\u0107 Pero"}, {"option": "-", "voter": "Dodig Goran"}, {"option": "+", "voter": "Dragovan Igor"}, {"option": "+", "voter": "\u0110aki\u0107 Josip"}, {"option": "+", "voter": "\u0110uji\u0107 Sa\u0161a"}, {"option": "+", "voter": "Felak Damir"}, {"option": "+", "voter": "Frankovi\u0107 Mato"}, {"option": "-", "voter": "Glasnovi\u0107 \u017deljko"}, {"option": "+", "voter": "Glasovac Sabina"}, {"option": "+", "voter": "Glava\u0161evi\u0107 Bojan"}, {"option": "+", "voter": "Hajdukovi\u0107 Domagoj"}, {"option": "+", "voter": "Horvat Darko"}, {"option": "+", "voter": "Horvat Mile"}, {"option": "+", "voter": "Hrg Branko"}, {"option": "+", "voter": "Jandrokovi\u0107 Gordan"}, {"option": "+", "voter": "Jankovics R\u00f3bert"}, {"option": "+", "voter": "Jeli\u0107 Damir"}, {"option": "+", "voter": "Jelkovac Marija"}, {"option": "+", "voter": "Josi\u0107 \u017deljka"}, {"option": "+", "voter": "Jovanovi\u0107 \u017deljko"}, {"option": "+", "voter": "Juri\u010dev-Martin\u010dev Branka"}, {"option": "+", "voter": "Kajtazi Veljko"}, {"option": "o", "voter": "Karli\u0107 Mladen"}, {"option": "+", "voter": "Kirin Ivan"}, {"option": "o", "voter": "Klari\u0107 Tomislav"}, {"option": "o", "voter": "Kliman Anton"}, {"option": "o", "voter": "Kosor Darinko"}, {"option": "+", "voter": "Kova\u010d Miro"}, {"option": "+", "voter": "Kristi\u0107 Maro"}, {"option": "o", "voter": "Kri\u017eani\u0107 Josip"}, {"option": "+", "voter": "Krstulovi\u0107 Opara Andro"}, {"option": "-", "voter": "Lackovi\u0107 \u017deljko"}, {"option": "+", "voter": "Lalovac Boris"}, {"option": "+", "voter": "Lekaj Prljaskaj Ermina"}, {"option": "+", "voter": "Luci\u0107 Franjo"}, {"option": "+", "voter": "Luka\u010di\u0107 Ljubica"}, {"option": "+", "voter": "Maksim\u010duk Ljubica"}, {"option": "-", "voter": "Mati\u0107 Predrag"}, {"option": "+", "voter": "Mesi\u0107 Jasen"}, {"option": "+", "voter": "Mikuli\u0107 Andrija"}, {"option": "+", "voter": "Mili\u010devi\u0107 Davor"}, {"option": "+", "voter": "Milinovi\u0107 Darko"}, {"option": "+", "voter": "Milo\u0161evi\u0107 Boris"}, {"option": "+", "voter": "Milo\u0161evi\u0107 Domagoj Ivan"}, {"option": "+", "voter": "Mrak-Tarita\u0161 Anka"}, {"option": "+", "voter": "Nin\u010devi\u0107-Lesandri\u0107 Ivana"}, {"option": "+", "voter": "Pari\u0107 Darko"}, {"option": "+", "voter": "Peri\u0107 Grozdana"}, {"option": "-", "voter": "Petin Ana-Marija"}, {"option": "+", "voter": "Petrijev\u010danin Vuksanovi\u0107 Irena"}, {"option": "+", "voter": "Podolnjak Robert"}, {"option": "+", "voter": "Prgomet Drago"}, {"option": "+", "voter": "Puh Marija"}, {"option": "+", "voter": "Pusi\u0107 Vesna"}, {"option": "+", "voter": "Radin Furio"}, {"option": "+", "voter": "Reiner \u017deljko"}, {"option": "+", "voter": "Romi\u0107 Davor"}, {"option": "+", "voter": "Ronko Zdravko"}, {"option": "+", "voter": "Ro\u0161\u010di\u0107 Dragica"}, {"option": "-", "voter": "Runti\u0107 Hrvoje"}, {"option": "+", "voter": "Sanader Ante"}, {"option": "+", "voter": "Saucha Tomislav"}, {"option": "+", "voter": "Sladoljev Marko"}, {"option": "+", "voter": "Strenja-Lini\u0107 Ines"}, {"option": "-", "voter": "Stri\u010dak An\u0111elko"}, {"option": "+", "voter": "\u0160imi\u0107 Marko"}, {"option": "+", "voter": "\u0160imi\u0107 Miroslav"}, {"option": "+", "voter": "Topolko Bernarda"}, {"option": "+", "voter": "Totgergeli Miro"}, {"option": "+", "voter": "Tu\u0111man Miroslav"}, {"option": "+", "voter": "Turina-\u0110uri\u0107 Nada"}, {"option": "+", "voter": "Tu\u0161ek \u017darko"}, {"option": "+", "voter": "Varda Ka\u017eimir"}, {"option": "+", "voter": "Vu\u010deti\u0107 Marko"}, {"option": "o", "voter": "Zekanovi\u0107 Hrvoje"}],
-"title": "Izvje\u0161\u0107e Mandatno-imunitetnog povjerenstva o zahtjevu za davanje odobrenja za vo\u0111enje kaznenog postupka protiv STEVE CULEJA, zastupnika u Hrvatskom saboru",
-"session_name": "2. sjednica Hrvatskoga sabora",
-"docs": [{"url": "/sites/default/files/uploads/sabor/2019-01-18/081050/MIP_STEVO_CULEJ.pdf",
-          "text": "MIP_STEVO_CULEJ.pdf"}],
-"url": "http://itv.sabor.hr/video/glasovanje.aspx?ID=7995",
-"time": "25.11.2016. 13:36"},
+    {"results_data": ["Rasprava je zaklju\u010dena 25. studenoga 2016.", "\nOdluka je donesena na 2. sjednici 25. studenoga 2016. (", ")."],
+    "results": "Ukupno: 94. Za: 77. Suzdr\u017ean: 8. Protiv: 9.",
+    "parent": "http://www.sabor.hr/hr/views/ajax?_wrapper_format=drupal_ajax",
+    "type": "vote_ballots", "date": "25.11.2016.",
+    "ballots": [{"option": "-", "voter": "Aleksi\u0107 Goran"}, {"option": "+", "voter": "Ambru\u0161ec Ljubica"}, {"option": "+", "voter": "Anu\u0161i\u0107 Ivan"}, {"option": "+", "voter": "Ba\u010di\u0107 Branko"}, {"option": "+", "voter": "Bali\u0107 Marijana"}, {"option": "+", "voter": "Bari\u0161i\u0107 Dra\u017een"}, {"option": "+", "voter": "Batini\u0107 Milorad"}, {"option": "+", "voter": "Bauk Arsen"}, {"option": "o", "voter": "Bedekovi\u0107 Vesna"}, {"option": "+", "voter": "Beus Richembergh Goran"}, {"option": "+", "voter": "Bilek Vladimir"}, {"option": "+", "voter": "Bori\u0107 Josip"}, {"option": "+", "voter": "Bo\u0161njakovi\u0107 Dra\u017een"}, {"option": "+", "voter": "Brki\u0107 Milijan"}, {"option": "-", "voter": "Bulj Miro"}, {"option": "o", "voter": "Bunjac Branimir"}, {"option": "+", "voter": "Buri\u0107 Majda"}, {"option": "+", "voter": "Culej Stevo"}, {"option": "+", "voter": "\u010ci\u010dak Mato"}, {"option": "+", "voter": "\u0106osi\u0107 Pero"}, {"option": "-", "voter": "Dodig Goran"}, {"option": "+", "voter": "Dragovan Igor"}, {"option": "+", "voter": "\u0110aki\u0107 Josip"}, {"option": "+", "voter": "\u0110uji\u0107 Sa\u0161a"}, {"option": "+", "voter": "Felak Damir"}, {"option": "+", "voter": "Frankovi\u0107 Mato"}, {"option": "-", "voter": "Glasnovi\u0107 \u017deljko"}, {"option": "+", "voter": "Glasovac Sabina"}, {"option": "+", "voter": "Glava\u0161evi\u0107 Bojan"}, {"option": "+", "voter": "Hajdukovi\u0107 Domagoj"}, {"option": "+", "voter": "Horvat Darko"}, {"option": "+", "voter": "Horvat Mile"}, {"option": "+", "voter": "Hrg Branko"}, {"option": "+", "voter": "Jandrokovi\u0107 Gordan"}, {"option": "+", "voter": "Jankovics R\u00f3bert"}, {"option": "+", "voter": "Jeli\u0107 Damir"}, {"option": "+", "voter": "Jelkovac Marija"}, {"option": "+", "voter": "Josi\u0107 \u017deljka"}, {"option": "+", "voter": "Jovanovi\u0107 \u017deljko"}, {"option": "+", "voter": "Juri\u010dev-Martin\u010dev Branka"}, {"option": "+", "voter": "Kajtazi Veljko"}, {"option": "o", "voter": "Karli\u0107 Mladen"}, {"option": "+", "voter": "Kirin Ivan"}, {"option": "o", "voter": "Klari\u0107 Tomislav"}, {"option": "o", "voter": "Kliman Anton"}, {"option": "o", "voter": "Kosor Darinko"}, {"option": "+", "voter": "Kova\u010d Miro"}, {"option": "+", "voter": "Kristi\u0107 Maro"}, {"option": "o", "voter": "Kri\u017eani\u0107 Josip"}, {"option": "+", "voter": "Krstulovi\u0107 Opara Andro"}, {"option": "-", "voter": "Lackovi\u0107 \u017deljko"}, {"option": "+", "voter": "Lalovac Boris"}, {"option": "+", "voter": "Lekaj Prljaskaj Ermina"}, {"option": "+", "voter": "Luci\u0107 Franjo"}, {"option": "+", "voter": "Luka\u010di\u0107 Ljubica"}, {"option": "+", "voter": "Maksim\u010duk Ljubica"}, {"option": "-", "voter": "Mati\u0107 Predrag"}, {"option": "+", "voter": "Mesi\u0107 Jasen"}, {"option": "+", "voter": "Mikuli\u0107 Andrija"}, {"option": "+", "voter": "Mili\u010devi\u0107 Davor"}, {"option": "+", "voter": "Milinovi\u0107 Darko"}, {"option": "+", "voter": "Milo\u0161evi\u0107 Boris"}, {"option": "+", "voter": "Milo\u0161evi\u0107 Domagoj Ivan"}, {"option": "+", "voter": "Mrak-Tarita\u0161 Anka"}, {"option": "+", "voter": "Nin\u010devi\u0107-Lesandri\u0107 Ivana"}, {"option": "+", "voter": "Pari\u0107 Darko"}, {"option": "+", "voter": "Peri\u0107 Grozdana"}, {"option": "-", "voter": "Petin Ana-Marija"}, {"option": "+", "voter": "Petrijev\u010danin Vuksanovi\u0107 Irena"}, {"option": "+", "voter": "Podolnjak Robert"}, {"option": "+", "voter": "Prgomet Drago"}, {"option": "+", "voter": "Puh Marija"}, {"option": "+", "voter": "Pusi\u0107 Vesna"}, {"option": "+", "voter": "Radin Furio"}, {"option": "+", "voter": "Reiner \u017deljko"}, {"option": "+", "voter": "Romi\u0107 Davor"}, {"option": "+", "voter": "Ronko Zdravko"}, {"option": "+", "voter": "Ro\u0161\u010di\u0107 Dragica"}, {"option": "-", "voter": "Runti\u0107 Hrvoje"}, {"option": "+", "voter": "Sanader Ante"}, {"option": "+", "voter": "Saucha Tomislav"}, {"option": "+", "voter": "Sladoljev Marko"}, {"option": "+", "voter": "Strenja-Lini\u0107 Ines"}, {"option": "-", "voter": "Stri\u010dak An\u0111elko"}, {"option": "+", "voter": "\u0160imi\u0107 Marko"}, {"option": "+", "voter": "\u0160imi\u0107 Miroslav"}, {"option": "+", "voter": "Topolko Bernarda"}, {"option": "+", "voter": "Totgergeli Miro"}, {"option": "+", "voter": "Tu\u0111man Miroslav"}, {"option": "+", "voter": "Turina-\u0110uri\u0107 Nada"}, {"option": "+", "voter": "Tu\u0161ek \u017darko"}, {"option": "+", "voter": "Varda Ka\u017eimir"}, {"option": "+", "voter": "Vu\u010deti\u0107 Marko"}, {"option": "o", "voter": "Zekanovi\u0107 Hrvoje"}],
+    "title": "Izvje\u0161\u0107e Mandatno-imunitetnog povjerenstva o zahtjevu za davanje odobrenja za vo\u0111enje kaznenog postupka protiv STEVE CULEJA, zastupnika u Hrvatskom saboru",
+    "session_name": "2. sjednica Hrvatskoga sabora",
+    "docs": [{"url": "/sites/default/files/uploads/sabor/2019-01-18/081050/MIP_STEVO_CULEJ.pdf",
+            "text": "MIP_STEVO_CULEJ.pdf"}],
+    "url": "http://itv.sabor.hr/video/glasovanje.aspx?ID=7995",
+    "time": "25.11.2016. 13:36"},
 
     """
+    options = {
+        'za':'for',
+        'protiv':'against',
+        'suzdržan':'abstain',
+        'suzdržana':'abstain',
+        'suzdržanim':'abstain',
+        'suzdržanih':'abstain',
+        'susdržan':'abstain',
+        'sudržan':'abstain',
+        'suzdržani':'abstain',
+        'suzdran':'abstain'
+    }
     def __init__(self, data, reference):
+
         # call init of parent object
         super(BallotsParser, self).__init__(reference)
 
@@ -213,7 +226,7 @@ class BallotsParser(BaseParser):
 
         line_id = self.get_line_id(line_ids)
 
-        session_split = data[line_id].replace(',', '').split(" ")
+        session_split = data[line_id].replace(',', '').replace(u'\xa0', ' ').split(" ")
 
         decision_words = [
             'donesen',
@@ -370,46 +383,43 @@ class BallotsParser(BaseParser):
 
 
     def parse_non_balots_balots(self, data):
-        # for votes where vote by hand :)
-        opt_map = {
-            "suzdr\u017eana": "abstain",
-            "za": "for",
-            "protiv": "against",
-        }
-        r=re.compile(r'\(.*\)')
-        text = self.results_data
-        #print(len(text))
-        if len(text)>1 and '(' in text[1]:
-            data = r.search(text[1]).group(0)
-        else:
-            data = r.search(text[0]).group(0)
-        data = data.replace('(','').replace(')','').replace(u'\xa0', ' ')
-        splited = data.split(' ')
-        j_data = {}
-        if 'jednoglasno' in data:
-            i=3
-            if splited[3] in ['glas', 'glasova']:
-                i=4
-            option = replace_nonalphanum(splited[i])
-            votes = splited[1]
+        find_results = '\\(?(?P<number>\\d+)\\)? (glas\\w* )?[„\\"]? ?(za|protiv|su[zs]?dr[zž]?an\\w*)[“\\"]?'
+        self.counters = {}
+        self.result = None
+        self.all_in = False
+        match = None
+        if data:
+            for paragraph in data:
+                matches = re.finditer(find_results, paragraph, re.MULTILINE | re.IGNORECASE)
+                for match in matches:
+                    votes = int(match.group(1))
+                    option = match.group(3)
+                    if votes:
+                        # if option:
+                        #     if option in ('preferencijalna', 'odlučio', 'jedno', 'većinom',
+                        #                   'zastupnika'):
+                        #         print(paragraph)
+                        #         break
+                        option = self.options[option.lower()]
+                        self.counters.update({option: votes})
+                        option = None
+                        votes = None
 
-            j_data = {opt_map[option]: votes}
+                if self.counters:
+                    if 'jednoglasno' in paragraph.lower():
+                        voters_count = 150
+                        attended = sum(self.counters.values())
+                        absent = voters_count - attended
+                        self.counters['absent'] = absent
+                        for option in ['for', 'against', 'absent', 'abstain']:
+                            if option not in self.counters.keys():
+                                self.counters[option] = 0
+                    break
 
-        else:
-            #parse others
-            # (81 glas \"za\", 4 \"protiv\", 4 \"suzdr\u017eana\")
-            votes = 0
-            option = ''
-            for token in splited:
-                token = replace_nonalphanum(token)
-                if token.isalpha():
-                    if token in opt_map.keys():
-                        option = token
-                        j_data[opt_map[option]] = votes
-                if token.isdigit():
-                    votes = int(token)
+                match = None
 
-        self.vote['counter'] = json.dumps(j_data)
+            print(self.counters, 'result:', self.result, 'all_in: ', self.all_in)
+            self.vote['counter'] = json.dumps(self.counters)
 
 def replace_nonalphanum(word):
     word = re.sub(r'\W+', '', word)

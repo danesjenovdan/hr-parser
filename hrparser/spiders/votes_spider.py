@@ -14,7 +14,7 @@ class VotesSpider(scrapy.Spider):
     }
     BASE_URL = 'http://www.sabor.hr'
     start_urls = [
-        'http://www.sabor.hr/hr/sjednice/pregled-dnevnih-redova',
+        'https://www.sabor.hr/hr/sjednice/pregled-dnevnih-redova',
     ]
     THIS_SAZIV_ID = 170
 
@@ -27,11 +27,11 @@ class VotesSpider(scrapy.Spider):
         data = {
             'view_name': 'sabor_data',
             'view_display_id': 'dnevni_redovi',
-            'field_saziv_target_id': '170',
+            'field_saziv_target_id': '117054',
         }
         print(data)
         url = 'https://www.sabor.hr/hr/views/ajax?_wrapper_format=drupal_ajax'
-        for select in response.css('[name="plenarna_id"] option')[:2]:
+        for select in response.css('[name="plenarna_id"] option')[:3]:
             value=select.css("::attr(value)").extract_first()
             if value:
                 print('-'*100)

@@ -182,12 +182,13 @@ class BaseParser(object):
 
         return party_id
 
-    def add_membership(self, person_id, party_id, role, label, start_time):
+    def add_membership(self, person_id, party_id, role, label, start_time, on_behalf_of=None):
         response = requests.post(API_URL + 'memberships/',
                                  json={"person": person_id,
                                        "organization": party_id,
                                        "role": role,
                                        "label": label,
+                                       "on_behalf_of": on_behalf_of,
                                        "start_time": start_time},
                                  auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
                                 )

@@ -4,8 +4,11 @@ from .settings import API_URL, API_AUTH, API_DATE_FORMAT
 from hrparser.spiders.people_spider import PeopleSpider
 from hrparser.spiders.speeches_spider import SpeechSpider
 from hrparser.spiders.votes_spider import VotesSpider
+from hrparser.spiders.votes_spider_37 import VotesSpider37
 from hrparser.spiders.questions_spider import QuestionsSpider
 from hrparser.spiders.act_spider import ActSpider
+from hrparser.spiders.parse_klubovi import PeopleClubSpider
+from hrparser.spiders.comitee_spider_38 import ComiteeSpider
 
 from datetime import datetime
 
@@ -17,31 +20,36 @@ from scrapy.pipelines.images import ImagesPipeline
 from scrapy.exceptions import DropItem
 
 from .data_parser.vote_parser import BallotsParser
+from .data_parser.vote_parser_37 import BallotsParser37
 from .data_parser.speech_parser import SpeechParser
 from .data_parser.question_parser import QuestionParser
 from .data_parser.person_parser import PersonParser
 from .data_parser.act_parser import ActParser
+from .data_parser.comitee_parser import ComiteeParser
 from .data_parser.utils import get_vote_key, fix_name, get_person_id
 # Define your item pipelines here
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html travnja
 
-COMMONS_ID = 199
+COMMONS_ID = 1
 
 import scrapy
 from scrapy.pipelines.images import ImagesPipeline
 from scrapy.exceptions import DropItem
 
-class ImagesPipeline(ImagesPipeline):
+class PeoplePipeline(object):
+    def process_item(self, item, spider):
+        return item
+
+class ImagessPipeline(ImagesPipeline):
     members = {}
     def __init__(self, *args, **kwargs):
-        super(ImagesPipeline, self).__init__(*args, **kwargs)
+        super(ImagessPipeline, self).__init__(*args, **kwargs)
         print('imgs pipeline getMembers')
         mps = getDataFromPagerApiDRF(API_URL + 'persons')
         for mp in mps:
             self.members[mp['name_parser']] = mp['id']
-
         print(self.members)
 
     def file_path(self, request, response=None, info=None):
@@ -54,9 +62,40 @@ class ImagesPipeline(ImagesPipeline):
 
     def get_media_requests(self, item, info):
         print("get media")
-        if 'img' in item.keys():
-            print('http://www.sabor.hr/' + item['img'])
-            yield scrapy.Request('http://www.sabor.hr/' + item['img'], meta=item)
+        if 'image' in item.keys():
+            print('https://www.sabor.hr' + item['image'])
+            yield scrapy.Request('https://www.sabor.hr' + item['img'], meta=item)
+        else:
+            return
+
+    def item_completed(self, results, item, info):
+        print("item compelte")
+        print(results)
+        image_paths = [x['path'] for ok, x in results if ok]
+        if not image_paths:
+            raise DropItem("Item contains no images")
+        item['image_paths'] = image_paths
+        return item
+
+
+class ImagesNamesPipeline(ImagesPipeline):
+    members = {}
+    def __init__(self, *args, **kwargs):
+        super(ImagesNamesPipeline, self).__init__(*args, **kwargs)
+
+    def file_path(self, request, response=None, info=None):
+        print("fajl path")
+        image_guid = request.meta['image'].split('/')[-1]
+        image_guid = image_guid.replace('%2C%2B', '_')
+        print(image_guid)
+        #log.msg(image_guid, level=log.DEBUG)
+        return image_guid
+
+    def get_media_requests(self, item, info):
+        print("get media")
+        if 'image' in item.keys():
+            print('https://www.sabor.hr' + item['image'])
+            yield scrapy.Request('https://www.sabor.hr' + item['image'], meta=item)
         else:
             return
 
@@ -73,7 +112,7 @@ class ImagesPipeline(ImagesPipeline):
 class HrparserPipeline(object):
     value = 0
     commons_id = COMMONS_ID
-    others = 344
+    others = 80
     local_data = {}
     members = {}
     parties = {}
@@ -82,6 +121,7 @@ class HrparserPipeline(object):
     agenda_items = {}
     orgs = {}
     klubovi = {}
+    commitees = {}
 
     added_session = {}
     added_votes = {}
@@ -94,10 +134,12 @@ class HrparserPipeline(object):
     votes_dates = {}
     questions = {}
     acts = {}
+    laws = {}
+    commitees_members = {}
 
     memberships = {}
 
-    mandate_start_time = datetime(day=14, month=10, year=2016)
+    mandate_start_time = datetime(day=22, month=7, year=2020)
 
     def __init__(self):
         print('pipeline getMembers')
@@ -116,6 +158,10 @@ class HrparserPipeline(object):
             if pg['classification'] == 'pg':
                 self.klubovi[pg['id']] = pg['_name']
 
+            if pg['classification'] == 'commitee':
+                self.commitees[pg['id']] = pg['_name']
+
+
         print(self.parties)
 
         print('pipeline getVotes')
@@ -123,7 +169,7 @@ class HrparserPipeline(object):
         for vote in votes:
             self.votes[get_vote_key(vote['name'], vote['start_time'])] = vote['id']
             self.votes_dates[vote['id']] = vote['start_time']
-            if vote['results']['absent'] + vote['results']['abstain'] + vote['results']['against'] + vote['results']['for'] == 0:
+            if vote['results'].get('absent', 0) + vote['results'].get('abstain', 0) + vote['results'].get('against', 0) + vote['results'].get('for', 0) == 0:
                 self.votes_without_ballots[get_vote_key(vote['name'], vote['start_time'])] = vote['id']
 
 
@@ -135,12 +181,12 @@ class HrparserPipeline(object):
         print('pipeline get sessions')
         sessions = getDataFromPagerApiDRF(API_URL + 'sessions')
         for session in sessions:
-            self.sessions[session['name']] = session['id']
+            self.sessions[session['name'] + '_' + str(session['organization'])] = session['id']
 
         print('pipeline get motions')
         motions = getDataFromPagerApiDRF(API_URL + 'motions')
         for motion in motions:
-            self.motions[motion['gov_id'].split('//')[1]] = motion['id']
+            self.motions[motion['gov_id']] = motion['id']
 
         """ # i think that this is unnecesery
         print('pipeline get districts')
@@ -162,12 +208,22 @@ class HrparserPipeline(object):
         print('pipeline get acts items')
         items = getDataFromPagerApiDRF(API_URL + 'law')
         for item in items:
-            self.acts[item['uid']] = {'id': item['id'], 'ended': item['procedure_ended']}
+            if item['classification'] == 'act':
+                self.acts[item['text'].lower()] = {'id':item['id'], 
+                 'ended':item['procedure_ended'],  'procedure':item['procedure']}
+            else:
+                self.laws[item['epa']] = {'id':item['id'], 
+                 'ended':item['procedure_ended'],  'procedure':item['procedure']}
 
         print('pipeline get acts items')
         items = requests.get(API_URL + 'getParliamentMembershipsOfMembers').json()
 
         self.memberships = items
+        
+        print('pipeline get commiteees memberships')
+        for commitee in self.commitees.keys():
+            items = getDataFromPagerApiDRF(API_URL + 'memberships/?role=voter&organization=' + str(commitee))
+            self.commitees_members[commitee] = [item['person'] for item in items]
 
         print('PIPELINE is READY')
 
@@ -182,13 +238,17 @@ class HrparserPipeline(object):
             print("spic_spider")
             SpeechParser(item, self)
 
-        elif type(spider) == VotesSpider:
-            BallotsParser(item, self)
+        elif type(spider) == PeopleClubSpider:
+            PersonParser(item, self)
+        elif type(spider) == VotesSpider37:
+            BallotsParser37(item, self)
 
         elif type(spider) == QuestionsSpider:
             QuestionParser(item, self)
         elif type(spider) == ActSpider:
             ActParser(item, self)
+        elif type(spider) == ComiteeSpider:
+            ComiteeParser(item, self)
         else:
             for party_id, klub in self.klubovi.items():
                 if klub == item['name']:
