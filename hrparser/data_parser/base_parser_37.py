@@ -298,13 +298,14 @@ class BaseParser37(object):
 
     def find_epa_in_name(self, name):
         search_epa = re.compile('(\\d+)')
-        if 'P.Z.' in name:
-            new_text = name.split('P.Z.')[1]
+        name = name.lower()
+        if 'p.z.' in name:
+            new_text = name.split('p.z.')[1]
             a = search_epa.search(new_text.strip())
             if a:
                 return a.group(0)
-        if 'P. Z.' in name:
-            new_text = name.split('P. Z.')[1]
+        if 'p. z.' in name:
+            new_text = name.split('p. z.')[1]
             a = search_epa.search(new_text.strip())
             if a:
                 return a.group(0)
