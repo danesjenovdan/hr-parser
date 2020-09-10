@@ -234,12 +234,14 @@ class BallotsParser37(BaseParser37):
          'odlučio predložiti',
          'da donese',
          'donošenje',
+         'je prihvaćeno'
          'podržao',
          'prihvati',
          'je donesen',
          'je donesenpredložiti',
          'većinom glasova',
-         'je donesena']
+         'je donesena',
+         'da se prihvaća']
         for word in negative_words:
             if word in text:
                 return '0'
