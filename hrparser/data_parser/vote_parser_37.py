@@ -68,7 +68,7 @@ class BallotsParser37(BaseParser37):
         self.time_f = None
         self.result_hirarhy = [
          'in_procedure', 'rejected', 'adopted', 'enacted']
-        self.act_result_options = ('rejected', 'adopted')
+        self.act_result_options = ('rejected', 'adopted', 'adopted')
         self.parse_title()
         self.set_fixed_data()
         self.ballots = None
@@ -218,7 +218,10 @@ class BallotsParser37(BaseParser37):
             self.vote['result'] = self.result
             self.motion['result'] = self.result
             if self.result:
-                self.act['result'] = self.act_result_options[int(self.result)]
+                if self.act['procedure'] in ['drugo čitanje', 'hitni postupak']:
+                    self.act['result'] = self.act_result_options[int(self.result)]
+                else:
+                    self.act['result'] = self.act_result_options[0 if int(self.result) == 0 else 2]
             print(self.counters, 'result:', self.result)
 
     def find_result(self, text):
@@ -285,7 +288,7 @@ class BallotsParser37(BaseParser37):
                 self.act['classification'] = 'zakon'
                 if ', hitni postupak' in text:
                     text = text.split(', hitni postupak')[0]
-                    self.act_result_options = ('rejected', 'enacted')
+                    self.act_result_options = ('rejected', 'enacted', 'adopted')
                     self.act['procedure'] = 'hitni postupak'
                     self.act['procedure_ended'] = True
                 else:
@@ -297,7 +300,7 @@ class BallotsParser37(BaseParser37):
                     else:
                         if ', prvo čitanje' in text:
                             text = text.split(', prvo čitanje')[0]
-                            self.act_result_options = ('rejected', 'adopted')
+                            self.act_result_options = ('rejected', 'adopted', 'adopted')
                             self.act['procedure'] = 'prvo čitanje'
                 self.act['text'] = text
             else:
@@ -314,7 +317,7 @@ class BallotsParser37(BaseParser37):
                         self.act['text'] = text.strip()
                 self.act['procedure_ended'] = True
                 self.act['procedure'] = 'act'
-            self.act_result_options = ('rejected', 'enacted')
+            self.act_result_options = ('rejected', 'enacted', 'adopted')
             #self.act['procedure_ended'] = True
 
     def parse_ballots(self, vote):
