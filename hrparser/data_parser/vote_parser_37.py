@@ -4,7 +4,8 @@ from ..settings import API_URL, API_AUTH, API_DATE_FORMAT
 from datetime import datetime, timedelta
 import requests, re, json, pdftotext
 
-PARSE_JUST_NEW_VOTES = True
+PARSE_JUST_NEW_VOTES = False
+FORCE_SET_DOCS = False
 
 options_map = {
     'donesen':'enacted',
@@ -82,6 +83,9 @@ class BallotsParser37(BaseParser37):
                     self.parse_results_from_content()
                     try:
                         self.parse_time_from_result_data()
+                        if FORCE_SET_DOCS:
+                            print("set_docs")
+                            self.set_docs()
                     except:
                         print("FAILLLLSSSS")
                         return
@@ -380,14 +384,14 @@ class BallotsParser37(BaseParser37):
             self.parse_ballots(vote_id)
 
     def set_docs(self):
-        if not self.is_motion_saved:
-            motion_id, motion_status = self.add_or_get_motion(self.url, self.motion)
+        if not self.is_motion_saved or FORCE_SET_DOCS:
+            motion_id, motion_status = self.add_or_get_motion(self.source_data['id'], self.motion)
             for doc in self.docs:
-                data = {'url':'http://www.sabor.hr' + doc['url'],
+                data = {'url': doc['url'],
                     'name':doc['text'],
                     'motion':motion_id
                 }
-                self.add_link(data)
+                print(self.add_link(data))
 
     def parse_time_from_result_data(self):
         time = datetime.strptime(self.source_data['date'], API_DATE_FORMAT + '.')
@@ -452,7 +456,7 @@ def replace_nonalphanum(word):
 class Get_PDF(object):
 
     def __init__(self, url, file_name):
-        response = requests.get(('https://sabor.hr' + url), verify=False)
+        response = requests.get((url), verify=False)
         with open('files/' + file_name, 'wb') as (f):
             f.write(response.content)
         with open('files/' + file_name, 'rb') as (f):

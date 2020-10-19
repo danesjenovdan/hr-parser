@@ -74,6 +74,15 @@ class VotesSpider37(scrapy.Spider):
         docs = []
         raw_docs = response.css('.view-display-id-vezane_informacije .field-content')
         for doc in raw_docs:
+            if doc.css('a::attr(href)').extract()[0].startswith("http"):
+                url = doc.css('a::attr(href)').extract()[0]
+            else:
+                url = 'https://www.sabor.hr' + doc.css('a::attr(href)').extract()[0]
+            docs.append({'url': url,  'text':doc.css('a::text').extract()[0]})
+
+
+        raw_docs = response.css('.view-display-id-amandmani .paragraph--type--accordions')
+        for doc in raw_docs:
             docs.append({'url':doc.css('a::attr(href)').extract()[0],  'text':doc.css('a::text').extract()[0]})
 
         data = {'title':title, 

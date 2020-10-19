@@ -219,9 +219,11 @@ class HrparserPipeline(object):
         items = requests.get(API_URL + 'getParliamentMembershipsOfMembers').json()
 
         self.memberships = items
-        
+
         print('pipeline get commiteees memberships')
+        print(self.commitees.keys())
         for commitee in self.commitees.keys():
+            print(API_URL + 'memberships/?role=voter&organization=' + str(commitee))
             items = getDataFromPagerApiDRF(API_URL + 'memberships/?role=voter&organization=' + str(commitee))
             self.commitees_members[commitee] = [item['person'] for item in items]
 
@@ -394,9 +396,15 @@ def getDataFromPagerApiDRF(url):
     data = []
     end = False
     page = 1
-    url = url+'?limit=300'
+    if '?' in url:
+        url = url + '&limit=300'
+    else:
+        url = url + '?limit=300'
     while url:
-        response = requests.get(url, auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])).json()
+        response = requests.get(url, auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1]))
+        print(response.content)
+        response = response.json()
+        print(response.keys())
         data += response['results']
         url = response['next']
     return data

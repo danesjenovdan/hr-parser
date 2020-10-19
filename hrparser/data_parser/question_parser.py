@@ -1,10 +1,12 @@
 from .base_parser import BaseParser
+from .base_parser_37 import BaseParser37
+
 
 from ..settings import API_URL, API_AUTH, API_DATE_FORMAT
 
 from datetime import datetime
 
-class QuestionParser(BaseParser):
+class QuestionParser(BaseParser37):
     def __init__(self, data, reference):
         # call init of parent object
         super(QuestionParser, self).__init__(reference)
