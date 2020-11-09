@@ -122,7 +122,7 @@ class BihParserPipeline(object):
         print('pipeline getVotes')
         votes = getDataFromPagerApiDRF(API_URL + 'votes/')
         for vote in votes:
-            self.votes[get_vote_key(vote['name'], vote['start_time'])] = vote['id']
+            self.votes[get_vote_key(vote['organization'], vote['start_time'])] = vote['id']
             self.votes_dates[vote['id']] = vote['start_time']
 
         print('pipeline get districts')
