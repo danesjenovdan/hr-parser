@@ -11,6 +11,11 @@ import copy
 import re
 import time
 
+import logging
+logger = logging.getLogger('session logger')
+
+UPDATE_VOTES = False
+
 class SessionParser(BaseParser):
     def __init__(self, item, reference):
         """
@@ -24,7 +29,7 @@ class SessionParser(BaseParser):
         """
         # call init of parent object
         super(SessionParser, self).__init__(reference)
-        print('.:SESSION PARSER:.')
+        logger.info('.:SESSION PARSER:.')
         self.speeches = []
 
         if item['session_of'] == 'Dom naroda':
@@ -32,7 +37,7 @@ class SessionParser(BaseParser):
         elif item['session_of'] == 'Predstavnički dom':
             org = self.reference.commons_id
         else:
-            print("WTF session")
+            logger.info("WTF session")
             return
         self.session = {
             "organization": org,
@@ -41,9 +46,10 @@ class SessionParser(BaseParser):
             "gov_id": item['gov_id'],
             "name": item['name'],
         }
+        self.update = UPDATE_VOTES
         # get and set session
 
-        print('session state 1')
+        logger.debug('session state 1')
 
         start_time = datetime.strptime(item['start_date'].strip() + ' ' + item['start_time'].strip(), API_DATE_FORMAT + ' %H:%M')
         self.session['start_time'] = start_time.isoformat()
@@ -58,7 +64,7 @@ class SessionParser(BaseParser):
         }
 
         if 'speeches' in item.keys() and self.session_id not in reference.sessions_with_speeches:
-            print('ima speeches')
+            logger.debug('ima speeches')
             #TODO skip parsing speeches already parsed
             content_parser = ContentParser(item['speeches'])
 
@@ -85,10 +91,10 @@ class SessionParser(BaseParser):
                                      json=self.speeches,
                                      auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
                                     )
-            print(response.content)
-            print(response.status_code)
+            logger.debug(response.content)
+            logger.debug(response.status_code)
         if 'votes' in item.keys():
-            print('ima votes')
+            logger.debug('ima votes')
             if item['session_of'] == 'Dom naroda':
                 votes_parser = VotesParserPeople(item['votes'])
                 org_id = H_PEOPLE
@@ -97,7 +103,7 @@ class SessionParser(BaseParser):
                 org_id = H_LORDS
 
             for order, parsed_vote in enumerate(votes_parser.votes):
-                print(parsed_vote.keys())
+                logger.debug(parsed_vote.keys())
                 if 'name' in parsed_vote.keys():
                     name = parsed_vote['name']
                 else:
@@ -125,7 +131,7 @@ class SessionParser(BaseParser):
                         'organization': org_id
                         #'motion':
                     }
-                    print('Adding motion::::........')
+                    logger.debug('Adding motion::::........')
                     motion_id, motion_status = self.add_or_get_motion(
                         vote_key,
                         motion_data
@@ -148,6 +154,12 @@ class SessionParser(BaseParser):
                                        'voterparty': party_id}
                         ballots.append(temp_ballot)
                     self.add_ballots(ballots)
+                elif self.update:
+                    logger.debug('UPDATE VOTE')
+                    vote_data = {
+                        'name': name
+                    }
+                    vote_id, vote_status = self.update_vote(vote_key, vote_data, id=vote_id)
 
     def find_epa(self, line):
         epas = None
@@ -188,7 +200,7 @@ class ContentParser(get_PDF):
         current_speaker = ''
         current_content = []
         for line in self.content:
-            #print(line)
+            #logger.debug(line)
             line = line.strip()
             if self.state == 'start':
                 if line in ['PREDSJEDAVAJUĆI', 'PREDSJEDATELJICA', 'PREDSJEDATELJ']:
@@ -229,10 +241,11 @@ class VotesParser(get_PDF):
         self.content = content.split('\n')
         self.state = 'start'
         self.votes = []
+        self.curr_title = ''
 
         self.parse()
 
-        print(self.votes)
+        #logger.debug(self.votes)
 
     def merge_name(self, name, agenda, typ):
         return ' - '.join([i for i in [name, agenda, typ] if i])
@@ -245,15 +258,15 @@ class VotesParser(get_PDF):
         self.found_keyword = False
 
         for line in self.content:
-            #print(line)
-            #print(self.state, self.num_of_lines, self.found_keyword)
+            logger.debug(line)
+            #logger.debug(self.state, self.num_of_lines, self.found_keyword)
             line = line.strip()
             if re.split("\s\s+", line.strip()) == ['ZA', 'PROTIV', 'SUZDRŽAN NIJE PRISUTAN', 'UKUPNO']:
                 self.state = 'start'
                 current_vote['agenda_item_name'] = ' '.join(current_vote['agenda_item_name'])
                 current_vote['name'] = ' '.join(current_vote['name'])
                 current_vote['name'] = self.merge_name(current_vote['name'], ' '.join(current_vote['agenda_item_name']), current_vote.get('type', ''))
-                print(current_vote['name'])
+                logger.debug(current_vote['name'])
                 if current_vote['ballots']:
                     self.votes.append(current_vote)
                 current_vote = {'count':{}, 'ballots':[], 'agenda_item_name':[], 'name': []}
@@ -265,7 +278,7 @@ class VotesParser(get_PDF):
                     continue
 
             elif self.state == 'agenda':
-                current_vote['agenda_item_name'].append(self.parse_multiline(line, 'Tačka dnevnog reda:', 'voteing-about'))
+                current_vote['agenda_item_name'].append(self.parse_multiline(line, self.curr_title, 'voteing-about'))
                 if not self.num_of_lines:
                     self.state = 'voteing-about'
 
@@ -277,6 +290,15 @@ class VotesParser(get_PDF):
                 if line.startswith('Redni broj tačke'):
                     current_vote['agenda_number'] = line.split(':')[1].strip()
                     self.state = 'agenda'
+                    self.curr_title = 'Redni broj tačke'
+                    self.num_of_lines = 0
+                    self.found_keyword = False
+                    continue
+                # workaround for stupit wtf case
+                if line.startswith('5HGQLEURMWDþNH'):
+                    current_vote['agenda_number'] = line.replace('5HGQLEURMWDþNH', '').strip()
+                    self.state = 'agenda'
+                    self.curr_title = '5HGQLEURMWDþNH'
                     self.num_of_lines = 0
                     self.found_keyword = False
                     continue
@@ -303,22 +325,27 @@ class VotesParser(get_PDF):
                     current_vote['count']['abstain'] = int(line[-5:].strip())
                 if line[0].isdigit():
                     # parse ballot
-                    print(re.match(r'(\d{1,2})\. (\d{1,2})\. (\d{4})\.', line))
+                    #logger.debug(re.match(r'(\d{1,2})\. (\d{1,2})\. (\d{4})\.', line))
                     if line.split(' ')[0].endswith('.') and not bool(re.match(r'(\d{1,2})\. (\d{1,2})\. (\d{4})', line)):
-                        print("in", bool(re.match(r'(\d{1,2})\. (\d{1,2})\. (\d{4})\.', line)))
+                        #logger.debug("in", bool(re.match(r'(\d{1,2})\. (\d{1,2})\. (\d{4})\.', line)))
                         current_vote['ballots'].append(self.parse_ballot(line))
                 if line.startswith('Tačka dnevnog reda:'):
                     self.state = 'agenda'
+                    self.curr_title = 'Tačka dnevnog reda:'
                     current_vote['agenda_item_name'].append(line.replace('Tačka dnevnog reda:', '').strip())
+                if line.startswith('7DþNDGQHYQRJUHGD'):
+                    self.state = 'agenda'
+                    self.curr_title = '7DþNDGQHYQRJUHGD'
+                    current_vote['agenda_item_name'].append(line.replace('7DþNDGQHYQRJUHGD', '').strip())
 
     def parse_ballot(self, line):
-        print(repr(line))
-        print(line)
+        #logger.debug(repr(line))
+        #logger.debug(line)
         try:
             temp1, name, temp2, option = re.split("\s\s+", line)
         except:
-            print('FAIL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-            print(line)
+            logger.debug('FAIL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            logger.debug(line)
             raise Exception
         return {'name': name, 'option': self.VOTE_MAP[option]}
 
@@ -356,7 +383,7 @@ class VotesParserPeople(get_PDF):
 
         self.parse()
 
-        print(self.votes)
+        logger.debug(self.votes)
 
     def merge_name(self, name, agenda, typ):
         return ' - '.join([i for i in [name, agenda, typ] if i])
@@ -371,18 +398,19 @@ class VotesParserPeople(get_PDF):
         for line in self.content:
             line = line.strip()
             if re.split("\s\s*", line.strip()) == ['ZA', 'PROTIV', 'SUZDRŽAN', 'NIJE', 'PRISUTAN', 'UKUPNO']:
-                print(line)
-                print(re.split("\s\s*", line.strip()))
-                print(re.split("\s\s+", line.strip()))
+                #logger.debug(line)
+                #logger.debug(re.split("\s\s*", line.strip()))
+                #logger.debug(re.split("\s\s+", line.strip()))
                 self.state = 'start'
                 current_vote['agenda_item_name'] = ' '.join(current_vote['agenda_item_name'])
-                if current_vote['agenda_item_name'].endswith(";"):
+                if current_vote['agenda_item_name'].endswith(";") or current_vote['agenda_item_name'].endswith(":"):
                     current_vote['agenda_item_name'] = current_vote['agenda_item_name'][0:-1]
-                current_vote['name'] = ' '.join(current_vote['name'])
-                if current_vote['name'].endswith(";"):
+                if current_vote['name'].endswith(";") or current_vote['name'].endswith(":"):
                     current_vote['name'] = current_vote['name'][0:-1]
+                current_vote['name'] = ' '.join(current_vote['name'])
 
                 current_vote['name'] = self.merge_name(current_vote['name'], ' '.join(current_vote['agenda-name']), current_vote.get('type', ''))
+                logger.debug(current_vote['name'])
 
                 if current_vote['ballots']:
                     self.votes.append(current_vote)
@@ -390,20 +418,20 @@ class VotesParserPeople(get_PDF):
                 continue
 
             if self.state == 'start':
-                print('start')
+                logger.debug('start')
                 if line.startswith('Rezultati glasanja'):
                     self.state = 'date'
                     continue
 
             elif self.state == 'date':
-                print('date')
+                logger.debug('date')
                 current_vote['start_time'] = datetime.strptime(line, API_DATE_FORMAT + ' %H:%M:%S')
                 self.state = 'agenda'
                 continue
 
             elif self.state == 'agenda':
-                print('agenda')
-                if line.startswith('Dom:') or line.startswith('Sjednica:') or line.startswith('Način glasanja:'):
+                logger.debug('agenda')
+                if line.startswith('Dom:') or line.startswith('Sjednica:') or line.startswith('Način glasanja:') or line.startswith('1DþLQJODVDQMD'):
                     continue
                 if line.startswith('Redni broj:'):
                     line = line.replace("Redni broj:", "").strip()
@@ -422,17 +450,17 @@ class VotesParserPeople(get_PDF):
                     current_vote['agenda_item_name'].append(line.strip())
 
             if self.state == 'agenda-name':
-                print('agenda-name')
+                logger.debug('agenda-name')
                 if line.startswith('Glasanje o:'):
                     self.state = 'voteing-about'
                 else:
                     current_vote['agenda-name'].append(line.replace('Naziv tačke:', '').strip())
 
             if self.state == 'voteing-about':
-                print('voting-about')
+                logger.debug('voting-about')
                 if line.startswith('Tip glasanja:'):
                     if 'poništeno' in line:
-                        print('ponisteno')
+                        logger.debug('ponisteno')
                         # skip this vote because it's repeted
                         current_vote = {'count': {}, 'ballots': [], 'agenda_item_name': [], 'agenda-name': [], 'name': []}
                         self.state = 'start'
@@ -443,8 +471,8 @@ class VotesParserPeople(get_PDF):
                 current_vote['name'].append(line.replace('Glasanje o:', '').strip())
 
             if self.state == 'parse':
-                print('parse')
-                print(line)
+                logger.debug('parse')
+                logger.debug(line)
                 if line.startswith('Prisutno'):
                     current_vote['count']['absent'] = 15 - int(line[-5:].strip())
                 elif line.startswith('ZA'):

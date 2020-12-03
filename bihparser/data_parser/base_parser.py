@@ -9,27 +9,32 @@ import editdistance
 
 from datetime import datetime
 
+import logging
+logger = logging.getLogger('base logger')
+
 class BaseParser(object):
     def __init__(self, reference):
         self.reference = reference
 
     # TODO
-    def api_request(self, endpoint, dict_key, value_key, json_data):
-        if value_key in getattr(self.reference, dict_key).keys():
+    def api_request(self, endpoint, dict_key, value_key, json_data, method='post'):
+        if value_key in getattr(self.reference, dict_key).keys() and not method =='patch':
             obj_id = getattr(self.reference, dict_key)[value_key]
             return obj_id, 'get'
         else:
-            response = requests.post(
+            requests_method = getattr(requests, method)
+            response = requests_method(
                 API_URL + endpoint,
                 json=json_data,
                 auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
             )
+            logger.debug(response.status_code)
             try:
                 obj_id = response.json()['id']
                 getattr(self.reference, dict_key)[value_key] = obj_id
             except Exception as e:
-                print(response.content)
-                print(endpoint, e, response.text, 'request was not delivered request was not delivered request was not delivered request was not delivered')
+                logger.debug(response.content)
+                logger.debug(endpoint, e, response.text, 'request was not delivered request was not delivered request was not delivered request was not delivered')
                 return None, 'fail'
         return obj_id, 'set'
 
@@ -54,18 +59,18 @@ class BaseParser(object):
                 person_data['education'] = education
             if birth_date:
                 person_data['birth_date'] = birth_date
-            print('Adding person', person_data)
+            logger.debug('Adding person', person_data)
             response = requests.post(
                 API_URL + 'persons/',
                 json=person_data,
                 auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
             )
-            print("NEWWW PERSON  check it: ", name)
+            logger.debug("NEWWW PERSON  check it: ", name)
             try:
                 person_id = response.json()['id']
                 self.reference.members[name] = person_id
             except Exception as e:
-                print(e, response.json())
+                logger.debug(e, response.json())
                 return None
         return person_id
 
@@ -84,6 +89,9 @@ class BaseParser(object):
 
     def add_or_get_vote(self, value_key, json_data):
         return  self.api_request('votes/', 'votes', value_key, json_data)
+
+    def update_vote(self, value_key, json_data, id=None):
+        return  self.api_request('votes/' + str(id) + '/' if id else '', 'votes', value_key, json_data, method='patch')
 
     def add_or_get_question(self, value_key, json_data):
         return  self.api_request('questions/', 'questions', value_key, json_data)
@@ -105,16 +113,16 @@ class BaseParser(object):
             json=json_data,
             auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
         )
-        print(response.text)
+        logger.debug(response.text)
 
     def add_ballots(self, json_data):
-        print("SENDING BALLOTS")
+        logger.debug("SENDING BALLOTS")
         response = requests.post(
             API_URL + 'ballots/',
             json=json_data,
             auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
         )
-        #print(response.content)
+        #logger.debug(response.content)
 
     def add_or_get_session(self, session_name, json_data):
         if session_name:
@@ -124,11 +132,11 @@ class BaseParser(object):
 
     def parse_edoc_person(self, data):
         splited = data.split('(')
-        print(splited)
+        logger.debug(splited)
         name = splited[0]
         if len(splited) > 1:
             pg = splited[1].split(')')[0]
-            print(pg)
+            logger.debug(pg)
         else:
             # ministers names are splited with /
             splited = data.split('/')
@@ -151,7 +159,7 @@ class BaseParser(object):
         for key in self.reference.parties.keys():
             for parser_name in key.split('|'):
                 #if p:
-                #    print(parser_name, editdistance.eval(name, parser_name))
+                #    logger.debug(parser_name, editdistance.eval(name, parser_name))
                 if editdistance.eval(name, parser_name) < 1:
                     return self.reference.parties[key]
         return None
@@ -161,7 +169,7 @@ class BaseParser(object):
 
         if not party_id:
             if create_if_not_exist:
-                print("ADDING ORG " + name)
+                logger.debug("ADDING ORG " + name)
                 response = requests.post(API_URL + 'organizations/',
                                          json={"_name": name.strip(),
                                                "name": name.strip(),
@@ -175,7 +183,7 @@ class BaseParser(object):
                     party_id = response.json()['id']
                     self.reference.parties[name.strip()] = party_id
                 except Exception as e:
-                    print(e, response.json())
+                    logger.debug(e, response.json())
                     return None
             else:
                 return None
