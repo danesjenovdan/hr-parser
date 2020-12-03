@@ -23,6 +23,9 @@ from .data_parser.club_parser import ClubParser
 from .data_parser.session_parser import SessionParser
 from .data_parser.utils import get_vote_key, fix_name, get_person_id
 
+import logging
+logger = logging.getLogger('pipeline logger')
+
 # Define your item pipelines here
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
@@ -35,32 +38,32 @@ class BihImagesPipeline(ImagesPipeline):
     members = {}
     def __init__(self, *args, **kwargs):
         super(BihImagesPipeline, self).__init__(*args, **kwargs)
-        print('imgs pipeline getMembers')
+        logger.warning('imgs pipeline getMembers')
         mps = getDataFromPagerApiDRF(API_URL + 'persons')
         for mp in mps:
             self.members[mp['name_parser']] = mp['id']
 
-        print(self.members)
+        logger.warning(self.members)
 
     def file_path(self, request, response=None, info=None):
-        print("fajl path")
-        print(fix_name(request.meta['name']), 'file-path')
+        logger.warning("fajl path")
+        logger.warning(fix_name(request.meta['name']), 'file-path')
         image_guid = str(get_person_id(self.members, fix_name(request.meta['name']))) + '.jpeg'
-        print(image_guid)
+        logger.warning(image_guid)
         #log.msg(image_guid, level=log.DEBUG)
         return image_guid
 
     def get_media_requests(self, item, info):
-        print("get media")
+        logger.warning("get media")
         if 'img' in item.keys():
-            print('http://www.sabor.hr/' + item['img'])
+            logger.warning('http://www.sabor.hr/' + item['img'])
             yield scrapy.Request('http://www.sabor.hr/' + item['img'], meta=item)
         else:
             return
 
     def item_completed(self, results, item, info):
-        print("item compelte")
-        print(results)
+        logger.warning("item compelte")
+        logger.warning(results)
         image_paths = [x['path'] for ok, x in results if ok]
         if not image_paths:
             raise DropItem("Item contains no images")
@@ -101,13 +104,13 @@ class BihParserPipeline(object):
     mandate_start_time = datetime(day=1, month=12, year=2018)
 
     def __init__(self):
-        print('pipeline getMembers')
+        logger.info('pipeline getMembers')
         mps = getDataFromPagerApiDRF(API_URL + 'persons')
         for mp in mps:
             self.members[mp['name_parser']] = mp['id']
 
-        print('pipeline parties')
-        #print(API_URL + 'organizations/')
+        logger.info('pipeline parties')
+        #logger.warning(API_URL + 'organizations/')
         paries = getDataFromPagerApiDRF(API_URL + 'organizations/')
         for pg in paries:
             self.orgs[pg['name_parser']] = pg['id']
@@ -117,20 +120,20 @@ class BihParserPipeline(object):
             if pg['classification'] == 'pg':
                 self.klubovi[pg['id']] = pg['_name']
 
-        #print(self.parties)
+        #logger.warning(self.parties)
 
-        print('pipeline getVotes')
+        logger.info('pipeline getVotes')
         votes = getDataFromPagerApiDRF(API_URL + 'votes/')
         for vote in votes:
             self.votes[get_vote_key(vote['organization'], vote['start_time'])] = vote['id']
             self.votes_dates[vote['id']] = vote['start_time']
 
-        print('pipeline get districts')
+        logger.info('pipeline get districts')
         areas = getDataFromPagerApiDRF(API_URL + 'areas')
         for area in areas:
             self.areas[area['name']] = area['id']
 
-        print('pipeline get sessions')
+        logger.info('pipeline get sessions')
         sessions = getDataFromPagerApiDRF(API_URL + 'sessions')
         for session in sessions:
             self.sessions[session['gov_id']] = session['id']
@@ -138,36 +141,36 @@ class BihParserPipeline(object):
             if requests.get(API_URL + 'speechs?session='+str(session['id'])).json()['results']:
                 self.sessions_with_speeches.append(session['id'])
 
-        #print('\n', self.sessions, '\n ')
+        #logger.warning('\n', self.sessions, '\n ')
 
-        print('pipeline get motions')
+        logger.info('pipeline get motions')
         motions = getDataFromPagerApiDRF(API_URL + 'motions')
         for motion in motions:
             self.motions[motion['gov_id']] = motion['id']
 
         """ # i think that this is unnecesery
-        print('pipeline get districts')
+        logger.warning('pipeline get districts')
         links = getDataFromPagerApiDRF(API_URL + 'links')
         for link in links:
             self.links[get_vote_key(link['name'], link['date'])] = link['id']
         """
 
-        print('pipeline get agenda items')
+        logger.info('pipeline get agenda items')
         items = getDataFromPagerApiDRF(API_URL + 'agenda-items')
         for item in items:
             self.agenda_items[get_vote_key(item['name'], item['date'])] = item['id']
 
-        print('pipeline get agenda items')
+        logger.info('pipeline get agenda items')
         items = getDataFromPagerApiDRF(API_URL + 'questions')
         for item in items:
             self.questions[item['signature']] = item['id']
 
-        print('pipeline get acts items')
+        logger.info('pipeline get acts items')
         items = getDataFromPagerApiDRF(API_URL + 'law')
         for item in items:
             self.acts[item['uid']] = {'id': item['id'], 'ended': item['procedure_ended']}
 
-        print('pipeline get memberships')
+        logger.info('pipeline get memberships')
         items = {}
         for mem in getDataFromPagerApiDRF(API_URL + 'memberships/?role=voter'):
             if str(mem['person']) in items.keys():
@@ -176,16 +179,16 @@ class BihParserPipeline(object):
                 items[str(mem['person'])] = [mem]
 
         self.memberships = items
-        #print('Memberships', self.memberships)
+        #logger.warning('Memberships', self.memberships)
 
-        print('PIPELINE is READY')
+        logger.info('PIPELINE is READY')
 
     def process_item(self, item, spider):
         #return item
         if type(spider) == PeopleSpider:
             PersonParser(item, self)
         elif type(spider) == ClubSpider:
-            print("club_spider")
+            logger.warning("club_spider")
             ClubParser(item, self)
         elif type(spider) == QuestionsSpider:
             QuestionParser(item, self)
@@ -199,7 +202,7 @@ class BihParserPipeline(object):
 
 
 def getDataFromPagerApiDRF(url):
-    print(url)
+    logger.warning(url)
     data = []
     end = False
     page = 1
@@ -209,7 +212,7 @@ def getDataFromPagerApiDRF(url):
         url = url+'?limit=300'
     while url:
         response = requests.get(url, auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])).json()
-        print(response)
+        logger.warning(response)
         data += response['results']
         url = response['next']
     return data

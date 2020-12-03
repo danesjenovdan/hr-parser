@@ -107,13 +107,13 @@ class ActParser(BaseParser):
         act_api_status = self.act_status()
         if act_api_status == 'unknown':
             self.parse_data()
-            #print(self.act)
+            #logger.debug(self.act)
             self.add_act(self.uid, self.act)
         elif act_api_status == 'in process':
             # TODO compare and edit
             self.parse_data()
         else:
-            #print('law is finished')
+            #logger.debug('law is finished')
             self.parse_data()
             pass
 

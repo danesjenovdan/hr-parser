@@ -7,6 +7,9 @@ from datetime import datetime
 from requests.auth import HTTPBasicAuth
 import requests
 
+import logging
+logger = logging.getLogger('session logger')
+
 class SpeechParser(BaseParser):
     def __init__(self, list_data, reference):
         """{"date": "20.04.2018.",
@@ -47,10 +50,10 @@ class SpeechParser(BaseParser):
         }
         self.agenda_id, agenda_method = self.get_agenda_item(agenda_key, agenda_json)
 
-        print(agenda_method, agenda_text.strip())
+        logger.debug(agenda_method, agenda_text.strip())
 
         if agenda_method == 'set':
-            print("SETTING", self.session_id)
+            logger.debug("SETTING", self.session_id)
             for data in list_data: 
 
                 self.date = data['date']
@@ -70,9 +73,9 @@ class SpeechParser(BaseParser):
                                      auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
                                     )
         elif agenda_method == 'fail':
-            print('agenda item set failed')
+            logger.debug('agenda item set failed')
         else:
-            print('this agenda item allready parsed')
+            logger.debug('this agenda item allready parsed')
         
     def parse_time(self):
         self.date = datetime.strptime(self.date, API_DATE_FORMAT + '.')
