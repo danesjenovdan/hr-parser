@@ -179,7 +179,6 @@ class BihParserPipeline(object):
                 items[str(mem['person'])] = [mem]
 
         self.memberships = items
-        #logger.warning('Memberships', self.memberships)
 
         logger.info('PIPELINE is READY')
 
@@ -212,7 +211,6 @@ def getDataFromPagerApiDRF(url):
         url = url+'?limit=300'
     while url:
         response = requests.get(url, auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])).json()
-        logger.warning(response)
         data += response['results']
         url = response['next']
     return data
