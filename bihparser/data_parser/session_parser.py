@@ -370,7 +370,7 @@ class VotesParser(get_PDF):
 
 class VotesParserPeople(get_PDF):
     def __init__(self, obj):
-        self.VOTE_MAP = {'PROTIV': 'against', 'ZA': 'for', 'NIJE PRISUTAN': 'abstain', 'SUZDRŽAN': 'abstain'}
+        self.VOTE_MAP = {'PROTIV': 'against', 'ZA': 'for', 'NIJE PRISUTAN': 'absent', 'SUZDRŽAN': 'abstain'}
 
         super().__init__(obj['url'], obj['file_name'])
         response = requests.get(obj['url'])
