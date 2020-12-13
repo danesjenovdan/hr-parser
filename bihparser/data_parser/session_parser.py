@@ -405,9 +405,10 @@ class VotesParserPeople(get_PDF):
                 current_vote['agenda_item_name'] = ' '.join(current_vote['agenda_item_name'])
                 if current_vote['agenda_item_name'].endswith(";") or current_vote['agenda_item_name'].endswith(":"):
                     current_vote['agenda_item_name'] = current_vote['agenda_item_name'][0:-1]
+                current_vote['name'] = ' '.join(current_vote['name'])
                 if current_vote['name'].endswith(";") or current_vote['name'].endswith(":"):
                     current_vote['name'] = current_vote['name'][0:-1]
-                current_vote['name'] = ' '.join(current_vote['name'])
+                #current_vote['name'] = ' '.join(current_vote['name'])
 
                 current_vote['name'] = self.merge_name(current_vote['name'], ' '.join(current_vote['agenda-name']), current_vote.get('type', ''))
                 logger.debug(current_vote['name'])
