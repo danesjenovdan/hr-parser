@@ -133,7 +133,7 @@ class ActParser(BaseParser):
         #if 'Vlada HR' in self.mdt:
         #    self.mdt = self.mdt.replace('HR')
         if 'mdt' in self.act.keys():
-            mdt_fk = self.add_organization(self.act['mdt'].strip(), '', create_if_not_exist=True)
+            mdt_fk = self.add_organization(self.act['mdt'].strip(), 'commitee', create_if_not_exist=True)
             self.act['mdt_fk'] = mdt_fk
         self.act['procedure_phase'] = self.status
 

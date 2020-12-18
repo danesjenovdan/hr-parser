@@ -152,11 +152,16 @@ class BaseParser(object):
         name = ' '.join(reversed(list(map(str.strip, name.split(',')))))
         return name, pg
 
-    def get_organization_id(self, name):
+    def get_organization_id(self, name, classification='pg'):
         p = False
         #if 'mora' in name:
         #    p = True
-        for key in self.reference.parties.keys():
+        if classification='commitee':
+            org_class = 'commitee'
+        else:
+            org_class = 'parties'
+
+        for key in getattr(self.reference, org_class).keys():
             for parser_name in key.split('|'):
                 #if p:
                 #    logger.debug(parser_name, editdistance.eval(name, parser_name))
@@ -165,7 +170,7 @@ class BaseParser(object):
         return None
 
     def add_organization(self, name, classification, create_if_not_exist=True):
-        party_id = self.get_organization_id(name)
+        party_id = self.get_organization_id(name, classification)
 
         if not party_id:
             if create_if_not_exist:

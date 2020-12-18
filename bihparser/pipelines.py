@@ -96,6 +96,7 @@ class BihParserPipeline(object):
     votes_dates = {}
     questions = {}
     acts = {}
+    commitee = {}
 
     sessions_with_speeches = []
 
@@ -119,6 +120,9 @@ class BihParserPipeline(object):
 
             if pg['classification'] == 'pg':
                 self.klubovi[pg['id']] = pg['_name']
+
+            if pg['classification'] in ['commitee', 'comission']:
+                self.commitee[pg['id']] = pg['name_parser']
 
         #logger.warning(self.parties)
 
