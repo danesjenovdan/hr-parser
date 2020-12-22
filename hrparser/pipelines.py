@@ -50,11 +50,11 @@ class ImagessPipeline(ImagesPipeline):
         mps = getDataFromPagerApiDRF(API_URL + 'persons')
         for mp in mps:
             self.members[mp['name_parser']] = mp['id']
-        print(self.members)
+        #print(self.members)
 
     def file_path(self, request, response=None, info=None):
         print("fajl path")
-        print(fix_name(request.meta['name']), 'file-path')
+        #print(fix_name(request.meta['name']), 'file-path')
         image_guid = str(get_person_id(self.members, fix_name(request.meta['name']))) + '.jpeg'
         print(image_guid)
         #log.msg(image_guid, level=log.DEBUG)
@@ -162,14 +162,18 @@ class HrparserPipeline(object):
                 self.commitees[pg['id']] = pg['_name']
 
 
-        print(self.parties)
+        #print(self.parties)
 
         print('pipeline getVotes')
         votes = getDataFromPagerApiDRF(API_URL + 'votes/')
         for vote in votes:
+            #print(vote['results'])
+            #if vote['results'] == None:
+            #   print(vote)
             self.votes[get_vote_key(vote['name'], vote['start_time'])] = vote['id']
             self.votes_dates[vote['id']] = vote['start_time']
-            if vote['results'].get('absent', 0) + vote['results'].get('abstain', 0) + vote['results'].get('against', 0) + vote['results'].get('for', 0) == 0:
+            #if vote['results'].get('absent', 0) + vote['results'].get('abstain', 0) + vote['results'].get('against', 0) + vote['results'].get('for', 0) == 0:
+            if vote['counter']:
                 self.votes_without_ballots[get_vote_key(vote['name'], vote['start_time'])] = vote['id']
 
 
@@ -221,7 +225,7 @@ class HrparserPipeline(object):
         self.memberships = items
 
         print('pipeline get commiteees memberships')
-        print(self.commitees.keys())
+        #print(self.commitees.keys())
         for commitee in self.commitees.keys():
             print(API_URL + 'memberships/?role=voter&organization=' + str(commitee))
             items = getDataFromPagerApiDRF(API_URL + 'memberships/?role=voter&organization=' + str(commitee))
@@ -402,9 +406,9 @@ def getDataFromPagerApiDRF(url):
         url = url + '?limit=300'
     while url:
         response = requests.get(url, auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1]))
-        print(response.content)
+        #print(response.content)
         response = response.json()
-        print(response.keys())
+        #print(response.keys())
         data += response['results']
         url = response['next']
     return data
