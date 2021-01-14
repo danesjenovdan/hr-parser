@@ -156,7 +156,7 @@ class BaseParser(object):
         p = False
         #if 'mora' in name:
         #    p = True
-        if classification='commitee':
+        if classification=='commitee':
             org_class = 'commitee'
         else:
             org_class = 'parties'
@@ -166,7 +166,7 @@ class BaseParser(object):
                 #if p:
                 #    logger.debug(parser_name, editdistance.eval(name, parser_name))
                 if editdistance.eval(name, parser_name) < 1:
-                    return self.reference.parties[key]
+                    return getattr(self.reference, org_class)[key]
         return None
 
     def add_organization(self, name, classification, create_if_not_exist=True):

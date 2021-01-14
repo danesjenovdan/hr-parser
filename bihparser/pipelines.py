@@ -122,7 +122,7 @@ class BihParserPipeline(object):
                 self.klubovi[pg['id']] = pg['_name']
 
             if pg['classification'] in ['commitee', 'comission']:
-                self.commitee[pg['id']] = pg['name_parser']
+                self.commitee[pg['name_parser']] = pg['id']
 
         #logger.warning(self.parties)
 
