@@ -77,7 +77,7 @@ class BaseParser(object):
     def get_person_id(self, name):
         for key in self.reference.members.keys():
             for parser_name in key.split(','):
-                if editdistance.eval(name, parser_name) < 2:
+                if editdistance.eval(name.lower(), parser_name) < 2:
                     return self.reference.members[key]
         return None
 

@@ -21,7 +21,7 @@ from .data_parser.person_parser import PersonParser
 from .data_parser.act_parser import ActParser
 from .data_parser.club_parser import ClubParser
 from .data_parser.session_parser import SessionParser
-from .data_parser.utils import get_vote_key, fix_name, get_person_id
+from .data_parser.utils import get_vote_key, fix_name, get_person_id, decode_parser_name
 
 import logging
 logger = logging.getLogger('pipeline logger')
@@ -108,7 +108,7 @@ class BihParserPipeline(object):
         logger.info('pipeline getMembers')
         mps = getDataFromPagerApiDRF(API_URL + 'persons')
         for mp in mps:
-            self.members[mp['name_parser']] = mp['id']
+            self.members[','.join([decode_parser_name(m)for m in mp['name_parser'].split(',')])] = mp['id']
 
         logger.info('pipeline parties')
         #logger.warning(API_URL + 'organizations/')

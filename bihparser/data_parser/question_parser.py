@@ -6,16 +6,18 @@ from datetime import datetime
 from .utils import fix_name
 from pprint import pprint
 import re
+import logging
+logger = logging.getLogger('session logger')
 
 
 class QuestionParser(BaseParser):
     base_url = 'http://parlament.ba'
 
     def __init__(self, data, reference):
-        print('\n'*5)
-        print('='*50, ' QuestionParser ', '='*50)
-        pprint(data)
-        print('='*50, ' ============== ', '='*50)
+        logger.debug('\n \n \n \n')
+        logger.debug( '============= QuestionParser ====================')
+        logger.debug('Data: %s', data)
+        logger.debug('==========================================================')
 
         # call init of parent object
         super(QuestionParser, self).__init__(reference)
@@ -35,7 +37,7 @@ class QuestionParser(BaseParser):
 
         if self.is_question_saved():
             # TODO edit question if we need it make force_render mode
-            print("This question is already parsed")
+            logger.debug("This question is already parsed")
 
         else:
             # parse data
@@ -59,7 +61,7 @@ class QuestionParser(BaseParser):
         self.question['title'] = self.title
 
         if not self.author.strip():
-            print('************** self.author is empty')
+            logger.debug('************** self.author is empty')
         else:
             author_ids = []
             author_org_ids = []
@@ -89,13 +91,13 @@ class QuestionParser(BaseParser):
 
             self.question['authors'] = author_ids
             self.question['author_orgs'] = author_org_ids
-            self.question['recipient_text'] = self.recipient.strip()
+            self.question['recipient_text'] = self.recipient.strip() if self.recipient else None
             #self.question['recipient_person'] = [recipient_id]
             #self.question['recipient_organization'] = [recipient_party_id]
 
-            print('*'*60)
-            pprint(self.question)
-            print('*'*60)
+            logger.debug('*'*60)
+            logger.debug('Question: %s', self.question)
+            logger.debug('*'*60)
 
             # send question
             question_id, method = self.add_or_get_question(self.question['signature'], self.question)

@@ -15,13 +15,14 @@ class QuestionsSpider(scrapy.Spider):
     }
 
     start_urls = [
-        'http://parlament.ba/oQuestion/GetORQuestions',
-        'http://parlament.ba/oQuestion/GetODQuestions',
+        'http://parlament.ba/oQuestion/GetORQuestions?RDId=&Rep-6=&Rep-4=&MandateId=6&DateFrom=&DateTo=',
+        'http://parlament.ba/oQuestion/GetODQuestions?RDId=&Del-6=&Del-4=&MandateId=6&DateFrom=&DateTo=',
     ]
     base_url = 'http://parlament.ba'
 
     data_map = {
         'Poslanik': 'name',
+        'Delegat': 'name',
         'Broj i datum dokumenta': 'date',
         'Pitanje postavljeno u pisanoj formi - subjekt i datum': 'asigned',
         'Nadležni subjekt kome je pitanje postavljeno u usmenoj formi': 'asigned',
@@ -36,6 +37,7 @@ class QuestionsSpider(scrapy.Spider):
             yield scrapy.Request(url=self.base_url + link, callback=self.question_parser)
 
         next_page = response.css('.PagedList-skipToNext a::attr(href)').extract_first()
+        print("!!---->>>>  ", next_page)
         if next_page:
             yield scrapy.Request(url=self.base_url + next_page, callback=self.parse)
 
@@ -43,7 +45,9 @@ class QuestionsSpider(scrapy.Spider):
         table = response.css('.table-minus .table-docs')[0]
         json_data = {'ref': response.url.split('contentId=')[1].split('&')[0],
                      'links': [],
-                     'url': response.url}
+                     'url': response.url,
+                     'text': '[link]',
+                     'asigned': None}
         try:
             links = response.css('.table-minus .table-docs')[1]
             for line in links.css('tr'):

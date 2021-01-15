@@ -43,3 +43,13 @@ def get_person_id(members, name):
                 if editdistance.eval(name, parser_name) < 1:
                     return members[key]
         return None
+
+def decode_parser_name(text):
+    try:
+        out = bytes(text, "latin-1").decode("unicode_escape")
+    except:
+        out = text
+    return out.lower()
+
+def decode_ba_string(text, num):
+    return ''.join([chr(ord(i) + num)  for i in text])
