@@ -46,7 +46,7 @@ class QuestionsSpider(scrapy.Spider):
         json_data = {'ref': response.url.split('contentId=')[1].split('&')[0],
                      'links': [],
                      'url': response.url,
-                     'text': '[link]',
+                     'text': '',
                      'asigned': None}
         try:
             links = response.css('.table-minus .table-docs')[1]
