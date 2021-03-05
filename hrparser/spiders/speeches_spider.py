@@ -14,7 +14,7 @@ class SpeechSpider(scrapy.Spider):
     }
 
     start_urls = [
-        'http://edoc.sabor.hr/Fonogrami.aspx',
+        'https://edoc.sabor.hr/Fonogrami.aspx',
         ]
 
     def parse(self, response):
@@ -38,7 +38,7 @@ class SpeechSpider(scrapy.Spider):
                 #'ctl00$ContentPlaceHolder$navFilter': '{&quot;selectedItemIndexPath&quot;:&quot;&quot;,&quot;groupsExpanding&quot;:&quot;0;0;0&quot;}',
                 #'ctl00$ContentPlaceHolder$rbtnTraziPo': '0',
             })
-            yield scrapy.FormRequest(url='http://edoc.sabor.hr/Fonogrami.aspx',
+            yield scrapy.FormRequest(url='https://edoc.sabor.hr/Fonogrami.aspx',
                                      formdata=form_data,
                                      meta={'page': str(i), 'calback': callback_param},
                                      callback=self.parse_agenda,
@@ -65,7 +65,7 @@ class SpeechSpider(scrapy.Spider):
             logging.error("OK " + response.meta["page"] + " " + response.meta["calback"])
         for i in items:
             row = i.css("td>a::attr(href)").extract()
-            url = 'http://edoc.sabor.hr' + row[4][2:-2]
+            url = 'https://edoc.sabor.hr' + row[4][2:-2]
             #print(url)
             yield scrapy.Request(url=url, callback=self.parse_speeches)
 
