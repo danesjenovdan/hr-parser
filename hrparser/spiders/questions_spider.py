@@ -14,7 +14,7 @@ class QuestionsSpider(scrapy.Spider):
     }
 
     start_urls = [
-        'http://edoc.sabor.hr/ZastupnickaPitanja.aspx',
+        'https://edoc.sabor.hr/ZastupnickaPitanja.aspx',
         ]
 
     def parse(self, response):       
@@ -29,7 +29,7 @@ class QuestionsSpider(scrapy.Spider):
             
             # This is how edoc aspx backend works. callback param need to know how much digits has number
             special_aspx = len(str(i-1)) + 12
-            callback_param = 'c0:KV|71;["8565","8566","8567","8570","8571","8572","8573","8574","8575","8576"];GB|' + str(special_aspx) + ';8|GOTOPAGE' + str(len(str(i-1))) + '|' + str(i-1) + ';'
+            callback_param = 'c0:KV|81;["11296","11295","11294","11293","11292","11291","11290","11289","11288","11265"];GB|' + str(special_aspx) + ';8|GOTOPAGE' + str(len(str(i-1))) + '|' + str(i-1) + ';'
             
             form_data.update({
                 'ctl00$ContentPlaceHolder$gvPitanja$PagerBarB$GotoBox': str(i),
@@ -38,7 +38,7 @@ class QuestionsSpider(scrapy.Spider):
                 #'ctl00$ContentPlaceHolder$navFilter': '{&quot;selectedItemIndexPath&quot;:&quot;&quot;,&quot;groupsExpanding&quot;:&quot;0;0;0&quot;}',
                 #'ctl00$ContentPlaceHolder$rbtnTraziPo': '0',
             })
-            yield scrapy.FormRequest(url='http://edoc.sabor.hr/ZastupnickaPitanja.aspx',
+            yield scrapy.FormRequest(url='https://edoc.sabor.hr/ZastupnickaPitanja.aspx',
                                      formdata=form_data,
                                      meta={'page': str(i), 'calback': callback_param},
                                      callback=self.parse_list,
@@ -65,7 +65,7 @@ class QuestionsSpider(scrapy.Spider):
             logging.error("FAIL " + response.meta["page"] + " " + response.meta["calback"])
         for i in items:
             row = i.css("td>a::attr(href)").extract()
-            url = 'http://edoc.sabor.hr/' + row[4][2:-2]
+            url = 'https://edoc.sabor.hr/' + row[4][2:-2]
             #print(url)
             yield scrapy.Request(url=url, callback=self.parse_question)
 
@@ -83,7 +83,8 @@ class QuestionsSpider(scrapy.Spider):
 
         link = response.css("#ctl00_ContentPlaceHolder_PitanjeFonogram::attr(href)").extract()
 
-        answear = response.css("#ctl00_ContentPlaceHolder_OdgovorFonogram::attr(href)").extract()
+        answer = response.css("#ctl00_ContentPlaceHolder_OdgovorFonogram::attr(href)").extract()
+        answer_date = response.css("#ctl00_ContentPlaceHolder_lbldatumOdgovoraValue::text").extract()
 
         yield {'author': author,
                'title': title,
@@ -95,5 +96,6 @@ class QuestionsSpider(scrapy.Spider):
                'signature': signature,
                'link': link,
                'edoc_url': response.url,
-               'answear': answear}
+               'answer': answer,
+               'answer_date': answer_date}
 

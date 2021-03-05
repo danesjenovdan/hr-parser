@@ -132,6 +132,9 @@ class BaseParser37(object):
     def add_or_get_question(self, value_key, json_data):
         return self.api_request('questions/', 'questions', value_key, json_data)
 
+    def update_question(self, signature, json_data):
+        self.api_request(f'questions/{self.reference.questions[signature]["id"]}/', 'questions', signature, json_data, method='patch')
+
     def add_link(self, json_data):
         return self.api_request('links/', 'links', json_data['url'], json_data)
 

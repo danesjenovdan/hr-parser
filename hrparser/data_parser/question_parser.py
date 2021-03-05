@@ -38,12 +38,16 @@ class QuestionParser(BaseParser37):
             self.url = data['link'][0]
         else:
             self.url = None
-        #print(data['typ'])
-        if data['answear']:
-            self.answear = data['answear'][0]
-            #print(data['answear'])
+        if data['answer_date']:
+            self.answer_date = datetime.strptime(data['answer_date'][0], "%d.%m.%Y.")
         else:
-            self.answear = None
+            self.answer_date = None
+        #print(data['typ'])
+        if data['answer']:
+            self.answer = data['answer'][0]
+            #print(data['answer'])
+        else:
+            self.answer = None
 
         # prepere dictionarys for setters
         self.question = {}
@@ -51,9 +55,16 @@ class QuestionParser(BaseParser37):
         self.date_f = None
 
         if self.is_question_saved():
-            # TODO edit question if we need it make force_render mode
-            #print("This question is allready parsed")
-            pass
+            if self.has_question_answer():
+                print("This question is allready parsed")
+                print(self.reference.questions[self.signature])
+                pass
+            else:
+                print(self.answer_date)
+                if self.answer_date:
+                    # Update answer with answer date
+                    self.parse_time()
+                    self.update_answer_date()
         else:
             # parse data
             self.parse_time()
@@ -62,8 +73,14 @@ class QuestionParser(BaseParser37):
     def is_question_saved(self):
         return self.signature in self.reference.questions.keys()
 
+    def has_question_answer(self):
+        if self.signature in self.reference.questions.keys():
+            return self.reference.questions[self.signature]['answer'] != None
+        else:
+            False
+
     def get_question_id(self):
-        return self.reference.questions[self.signature]
+        return self.reference.questions[self.signature]['id']
 
 
     def parse_time(self):
@@ -71,7 +88,15 @@ class QuestionParser(BaseParser37):
         self.question['date'] = self.date_f.isoformat()
         self.link['date'] = self.date_f.strftime("%Y-%m-%d")
 
-    def parse_data(self):
+    def update_answer_date(self):
+        self.update_question(
+            self.signature,
+            {
+                'date_of_answer': self.answer_date.isoformat()
+            }
+        )
+
+    def parse_data(self, update=False):
         if self.url:
             self.link['url'] = "http://edoc.sabor.hr/Views/" + self.url
             self.link['name'] = self.title

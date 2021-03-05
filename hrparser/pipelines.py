@@ -207,7 +207,7 @@ class HrparserPipeline(object):
         print('pipeline get agenda items')
         items = getDataFromPagerApiDRF(API_URL + 'questions')
         for item in items:
-            self.questions[item['signature']] = item['id']
+            self.questions[item['signature']] = {'id': item['id'], 'answer': item['date_of_answer']}
 
         print('pipeline get acts items')
         items = getDataFromPagerApiDRF(API_URL + 'law')
