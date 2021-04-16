@@ -86,6 +86,9 @@ class QuestionsSpider(scrapy.Spider):
         answer = response.css("#ctl00_ContentPlaceHolder_OdgovorFonogram::attr(href)").extract()
         answer_date = response.css("#ctl00_ContentPlaceHolder_lbldatumOdgovoraValue::text").extract()
 
+        if not answer_date:
+            if 'sjednici' in response.css("#ctl00_ContentPlaceHolder_lblnacinPostavljanjaValue::text").extract_first():
+                answer_date = date
         yield {'author': author,
                'title': title,
                'ref': ref,
