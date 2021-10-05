@@ -52,7 +52,7 @@ class QuestionParser(BaseParser):
 
     def parse_time(self):
         sp = self.date.split(',')
-        date = sp[1].strip()
+        date = sp[-1].strip()
         self.date_f = datetime.strptime(date, "%d.%m.%Y.")
         self.question['date'] = self.date_f.isoformat()
 
