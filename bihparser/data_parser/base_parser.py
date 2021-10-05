@@ -93,6 +93,26 @@ class BaseParser(object):
     def update_vote(self, value_key, json_data, id=None):
         return  self.api_request('votes/' + str(id) + '/' if id else '', 'votes', value_key, json_data, method='patch')
 
+    def update_legislation(self, value_key, json_data, id=None):
+        response = requests.patch(
+                API_URL + 'law/' + str(id) + '/',
+                json=json_data,
+                auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
+            )
+        data = response.json()
+        self.reference.legislation[value_key] = data
+        return data
+
+    def add_legislation(self, value_key, json_data):
+        response = requests.post(
+                API_URL + 'law/',
+                json=json_data,
+                auth=HTTPBasicAuth(API_AUTH[0], API_AUTH[1])
+            )
+        data = response.json()
+        self.reference.legislation[value_key] = data
+        return data
+
     def add_or_get_question(self, value_key, json_data):
         return  self.api_request('questions/', 'questions', value_key, json_data)
 
@@ -223,3 +243,9 @@ class BaseParser(object):
                     else:
                         return mem['on_behalf_of']
         return None
+
+    def remove_leading_zeros(self, word, separeted_by=[',', '-', '/']):
+        for separator in separeted_by:
+            word = separator.join(map(lambda x: x.lstrip('0'), word.split(separator)))
+        return word
+

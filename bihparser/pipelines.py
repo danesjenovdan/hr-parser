@@ -96,6 +96,7 @@ class BihParserPipeline(object):
     votes_dates = {}
     questions = {}
     acts = {}
+    legislation = {}
     commitee = {}
 
     sessions_with_speeches = []
@@ -173,6 +174,7 @@ class BihParserPipeline(object):
         items = getDataFromPagerApiDRF(API_URL + 'law')
         for item in items:
             self.acts[item['uid']] = {'id': item['id'], 'ended': item['procedure_ended']}
+            self.legislation[self.remove_leading_zeros(item['epa'])] = item
 
         logger.info('pipeline get memberships')
         items = {}
@@ -202,6 +204,11 @@ class BihParserPipeline(object):
         else:
 
             return item
+
+    def remove_leading_zeros(self, word, separeted_by=[',', '-', '/']):
+        for separator in separeted_by:
+            word = separator.join(map(lambda x: x.lstrip('0'), word.split(separator)))
+        return word
 
 
 def getDataFromPagerApiDRF(url):

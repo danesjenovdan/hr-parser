@@ -19,10 +19,11 @@ class SessionSpider(scrapy.Spider):
         ]
     base_url = 'http://parlament.ba'
 
-    def __init__(self, house=None, gov_id=None, *args,**kwargs):
+    def __init__(self, house=None, gov_id=None, parse_type=None, *args,**kwargs):
         super(SessionSpider, self).__init__(*args, **kwargs)
         self.house = house
         self.gov_id = gov_id
+        self.parse_type = parse_type
 
     def parse(self, response):
         session_of = response.css(".article header h1::text").extract_first()
@@ -51,6 +52,8 @@ class SessionSpider(scrapy.Spider):
         start_date = ''.join([i.strip() for i in response.css('.schedule::text').extract()])
         start_time = response.css('.time::text').extract_first()
 
+        agenda_items = response.css(".session-schedule p::text").extract()
+
         print(session_name)
 
         data = {
@@ -59,13 +62,14 @@ class SessionSpider(scrapy.Spider):
             'name': session_name,
             'start_date': start_date,
             'start_time': start_time,
+            'agenda_items': agenda_items
         }
 
         for li in response.css('.session-box .list-unstyled li a'):
             key = li.css('a::text').extract_first()
             link = li.css('a::attr(href)').extract_first()
             print('link', link)
-            if key == 'Rezultati glasanja' and link:
+            if key == 'Rezultati glasanja' and link and (self.parse_type in ['votes', None]):
                 # parse votes
                 file_name = str(session_gov_id) + '-votes.pdf'
                 data['votes'] = {
@@ -73,13 +77,20 @@ class SessionSpider(scrapy.Spider):
                     'url': self.base_url + link
                 }
 
-            elif key == 'Stenogram' and link:
+            elif key == 'Stenogram' and link and (self.parse_type in ['speeches', None]):
                 # parse speeches
                 file_name = str(session_gov_id) + '-speeches.pdf'
                 data['speeches'] = {
                     'file_name': file_name,
                     'url': self.base_url + link
                 }
+            elif key == 'Izvještaj' and link and (self.parse_type in ['legislation', None]):
+                file_name = str(session_gov_id) + '-izvjestaj.pdf'
+                data['izvjestaj'] = {
+                    'file_name': file_name,
+                    'url': self.base_url + link
+                }
+
         yield data
 
     def save_pdf(self, response):
