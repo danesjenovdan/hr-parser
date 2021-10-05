@@ -31,6 +31,7 @@ class SessionParser(BaseParser):
         super(SessionParser, self).__init__(reference)
         logger.info('.:SESSION PARSER:.')
         self.speeches = []
+        cut_order = r'^\d*\. '
 
         if item['session_of'] == 'Dom naroda':
             org = self.reference.people_id
@@ -63,6 +64,14 @@ class SessionParser(BaseParser):
             'valid_to': datetime.max.isoformat()
         }
 
+        if 'agenda_items' in item.keys() and self.session_id:
+            for agenda_item in item['agenda_items']:
+                agenda_text = re.sub(cut_order, '', agenda_item)
+                if agenda_text[-1] == ';':
+                    agenda_text = agenda_text[:-1]
+
+
+
         if 'speeches' in item.keys() and self.session_id not in reference.sessions_with_speeches:
             logger.debug('ima speeches')
             #TODO skip parsing speeches already parsed
@@ -93,6 +102,52 @@ class SessionParser(BaseParser):
                                     )
             logger.debug(response.content)
             logger.debug(response.status_code)
+
+        if 'izvjestaj' in item.keys():
+            status_order = ['','under_consideration', 'in_procedure', 'rejected', 'adopted', 'enacted']
+            find_epa = r'[- 0-9,]*\d{3}\/\d{2}'
+            legislation_parser = LegislationParser(item['izvjestaj'])
+            results = legislation_parser.get_results(item['session_of'])
+
+            for legislation in results:
+
+                normalized_epa = self.remove_leading_zeros(legislation['epa'])
+
+                saved_obj = self.reference.legislation.get(normalized_epa, {})
+                if saved_obj:
+                    if (saved_obj['status'] in ['rejected', 'enacted']) or saved_obj['procedure_ended']:
+                        continue
+                    elif saved_obj['status'] != legislation['result']:
+                        if status_order.index(legislation['result']) > status_order.index(saved_obj['status']):
+                            self.update_legislation(
+                                normalized_epa,
+                                {
+                                    'status': legislation['result'],
+                                    'procedure_ended': True if legislation['result'] in ['rejected', 'enacted'] else False
+                                },
+                                id=saved_obj['id'])
+                else:
+                    print('save new legislation', legislation, normalized_epa)
+                    split_words = [', predlagač:', ', broj:', '(prvo čitanje)']
+                    text = legislation['text']
+                    for split_word in split_words:
+                        if split_word in text:
+                            text = text.split(split_word)[0]
+
+                    self.add_legislation(
+                        normalized_epa,
+                        {
+                            'epa': legislation['epa'],
+                            'text': text,
+                            'date': start_time.isoformat(),
+                            'session': self.session_id,
+                            'classification': 'legislation',
+                            'status': legislation['result'],
+                            'procedure_ended': True if legislation['result'] in ['rejected', 'enacted'] else False
+                        },
+                    )
+
+
         if 'votes' in item.keys():
             logger.debug('ima votes')
             if item['session_of'] == 'Dom naroda':
@@ -183,6 +238,113 @@ class get_PDF(object):
 
         with open('files/'+file_name, "rb") as f:
             self.pdf = pdftotext.PDF(f)
+
+class LegislationParser(get_PDF):
+    def __init__(self, obj):
+        super().__init__(obj['url'], obj['file_name'])
+        response = requests.get(obj['url'])
+
+        content = "".join(self.pdf)
+        self.content = content.replace('\uf0b7', '').split('\n')
+        self.state = 'meta'
+        self.legislation = []
+
+        self.rejected_words = ['ODBIJEN PRIJEDLOG ZAKONA', 'NIJE USVOJEN PRIJEDLOG ZAKONA']
+        self.in_procedure_words = ['PRIJEDLOG ZAKONA UPUĆEN']
+        self.adopted_enacted_words = ['USVOJEN ZAKON', 'USVOJEN PRIJEDLOG ZAKONA']
+
+        self.skip_table_row_if_contains = ['DELEGATSKA INICIJATIVA', 'IZVJEŠTAJ', 'SAGLASNOST', 'ZNANJU INFORMACIJA']
+
+        self.legislation = self.parse()
+
+    def if_string_contains_any(self, input_string, substrings):
+        return any(substring in input_string for substring in substrings)
+
+    def get_results(self, house):
+        find_epa = r'[- 0-9,]*\d{3}\/\d{2}'
+
+        output = []
+
+        for law in self.legislation:
+            epa = re.findall(find_epa, law['text'])
+            if self.if_string_contains_any(law['result'], self.skip_table_row_if_contains):
+                continue
+            if epa and 'zakon' in law['text'].lower():
+                result = ''
+                if self.if_string_contains_any(law['result'], self.rejected_words):
+                    result = 'rejected'
+                elif self.if_string_contains_any(law['result'], self.in_procedure_words):
+                    result = 'in_procedure'
+                elif self.if_string_contains_any(law['result'], self.adopted_enacted_words):
+                    if house == 'Dom naroda':
+                        if 'U PRVOM ČITANJU' in law['result']:
+                            result = 'adopted'
+                        else:
+                            result = 'enacted'
+
+                    elif house == 'Predstavnički dom':
+                        result = 'in_procedure'
+                else:
+                    # IF theres unknown result text then dont add it to output
+                    continue
+                output.append({
+                    'epa': epa[0].replace(' ', ''),
+                    'text': law['text'],
+                    'result_text': law['result'],
+                    'result': result
+                })
+        return output
+
+    def parse(self):
+        start_of_agenda_no = r'^\d*\.[ \s]+[a-zžćčšđA-ZŽĆČĐŠ]*'
+        agenda_items = []
+
+        text = []
+        result = []
+
+        for line in self.content:
+            line_columns = re.split("\s\s+", line.strip())
+
+            if self.state == 'meta':
+                if re.findall(start_of_agenda_no, line):
+                    self.state = 'parse'
+            if self.state == 'parse':
+                # new line
+                if re.findall(start_of_agenda_no, line):
+                    # new agenda item
+                    line_columns = re.split("\s\s+", re.split("^\d+. ", line)[1])
+                    if text and result:
+                        agenda_items.append({
+                            'text': ' '.join(text),
+                            'result': ' '.join(result)
+                        })
+                    leading_spaces = len(line)-len(line.lstrip())
+                    if len(line_columns) == 1:
+                        if leading_spaces > 10:
+                            text = []
+                            result = [line_columns[0]]
+                        else:
+                            text = [line_columns[0]]
+                            result = []
+                    else:
+                        text = [line_columns[0]]
+                        result = [line_columns[1]]
+                else:
+                    # append line
+                    leading_spaces = len(line)-len(line.lstrip())
+                    if leading_spaces > 10: # if second column has more rows than first
+                        result.append(line_columns[0])
+                    else:
+                        text.append(line_columns[0])
+                        if len(line_columns) == 2:
+                            result.append(line_columns[1])
+
+        agenda_items.append({
+            'text': ' '.join(text),
+            'result': ' '.join(result)
+        })
+        return agenda_items
+
 
 class ContentParser(get_PDF):
     def __init__(self, obj):
