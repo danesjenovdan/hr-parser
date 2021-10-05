@@ -160,6 +160,8 @@ class SessionParser(BaseParser):
                         'name': name
                     }
                     vote_id, vote_status = self.update_vote(vote_key, vote_data, id=vote_id)
+                else:
+                    print('Vote is allredy parsed')
 
     def find_epa(self, line):
         epas = None
@@ -346,7 +348,8 @@ class VotesParser(get_PDF):
                 if line.startswith('Nije prisutan'):
                     current_vote['count']['absent'] = int(line[-5:].strip())
                 if line.startswith('ZA'):
-                    current_vote['count']['for'] = int(line[-5:].strip())
+                    #current_vote['count']['for'] = int(line[-5:].strip())
+                    pass
                 if line.startswith('PROTIV'):
                     current_vote['count']['against'] = int(line[-5:].strip())
                 if line.startswith('SUZDRŽAN'):
@@ -356,7 +359,9 @@ class VotesParser(get_PDF):
                     #logger.debug(re.match(r'(\d{1,2})\. (\d{1,2})\. (\d{4})\.', line))
                     if line.split(' ')[0].endswith('.') and not bool(re.match(r'(\d{1,2})\. (\d{1,2})\. (\d{4})', line)):
                         #logger.debug("in", bool(re.match(r'(\d{1,2})\. (\d{1,2})\. (\d{4})\.', line)))
-                        current_vote['ballots'].append(self.parse_ballot(line))
+                        bb=self.parse_ballot(line)
+                        if bb:
+                            current_vote['ballots'].append(bb)
                 if line.startswith('Tačka dnevnog reda:'):
                     self.state = 'agenda'
                     self.curr_title = 'Tačka dnevnog reda:'
@@ -374,7 +379,8 @@ class VotesParser(get_PDF):
         except Exception as e:
             logger.debug(e)
             logger.debug(line)
-            raise Exception
+            #raise Exception
+            return {}
         return {'name': name, 'option': self.VOTE_MAP[option]}
 
     def parse_multiline(self, line, keyword, next_state):
@@ -517,5 +523,8 @@ class VotesParserPeople(get_PDF):
                     current_vote['ballots'].append(self.parse_ballot(line))
 
     def parse_ballot(self, line):
-        name, temp2, option = re.split("\s\s+", line)
+        try:
+            name, temp2, option = re.split("\s\s+", line)
+        except:
+            print(line)
         return {'name': name, 'option': self.VOTE_MAP[option]}
