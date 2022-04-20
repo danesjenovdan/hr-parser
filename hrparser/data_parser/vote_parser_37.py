@@ -1,6 +1,6 @@
-from .base_parser_37 import BaseParser37
-from .utils import get_vote_key
-from ..settings import API_URL, API_AUTH, API_DATE_FORMAT
+from hrparser.data_parser.base_parser_37 import BaseParser37
+from hrparser.data_parser.utils import get_vote_key
+from hrparser.settings import API_URL, API_AUTH, API_DATE_FORMAT
 from datetime import datetime, timedelta
 import requests, re, json, pdftotext
 
@@ -57,18 +57,24 @@ class BallotsParser37(BaseParser37):
         print('PARSE____', self.title)
         print(self.docs)
         self.session_name = data['session_name'].split('.')[0] + '. sjednica'
-        self.session = {'organization':self.reference.commons_id, 
-         'organizations':[
-          self.reference.commons_id], 
-         'in_review':False, 
-         'name':self.session_name}
+        self.session = {'organization':self.reference.commons_id,
+            'organizations':[
+            self.reference.commons_id],
+            'in_review':False,
+            'name':self.session_name
+        }
         self.motion = {}
         self.vote = {}
-        self.act = {'status':'in_procedure', 
-         'result':'in_procedure'}
+        self.act = {
+            'status':'in_procedure',
+            'result':'in_procedure'}
         self.time_f = None
         self.result_hirarhy = [
-         'in_procedure', 'rejected', 'adopted', 'enacted']
+            'in_procedure',
+            'rejected',
+            'adopted',
+            'enacted'
+        ]
         self.act_result_options = ('rejected', 'adopted', 'adopted')
         self.parse_title()
         self.set_fixed_data()
@@ -124,7 +130,12 @@ class BallotsParser37(BaseParser37):
                 self.act['procedure_ended'] = False
                 self.act['status'] = 'in_procedure'
                 self.act['result'] = 'in_procedure'
-                d_time = datetime.strptime(self.source_data['date_to_procedure'], '%Y-%m-%dT%H:%M:%SZ')
+                if 'date_to_procedure' in self.source_data.keys():
+                    d_time = datetime.strptime(self.source_data['date_to_procedure'], '%Y-%m-%dT%H:%M:%SZ')
+                elif 'time' in self.source_data.keys():
+                    d_time = datetime.strptime(self.source_data['time'], '%d.%m.%Y. %H:%M')
+                else:
+                    raise Exception("No time")
                 self.act['date'] = d_time.isoformat()
                 print("law type:", self.act['classification'])
                 if self.act['classification'] == 'act':
@@ -138,6 +149,10 @@ class BallotsParser37(BaseParser37):
                     if note:
                         self.act['note'] = ' '.join(note)
                     self.act_id = self.add_or_update_law(self.act['epa'], self.act)
+                self.parse_results()
+                self.set_data()
+                self.set_docs()
+
         if data['type'] == 'legislation':
             session_id, session_status = self.add_or_get_session(self.session['name'], self.session)
             self.act['session'] = session_id
@@ -344,7 +359,7 @@ class BallotsParser37(BaseParser37):
             members_on_vote.append(member)
 
         date_f = dt = datetime.strptime(self.reference.votes_dates[vote], '%Y-%m-%dT%H:%M:%S')
-        mps = requests.get(API_URL + 'getMPs/' + date_f.strftime(API_DATE_FORMAT + 'T%H:%M')).json
+        mps = requests.get(API_URL + 'getMPs/' + date_f.strftime(API_DATE_FORMAT + 'T%H:%M')).json()
         for mp in mps:
             if mp['id'] not in members_on_vote:
                 temp = {'option':'absent',  'vote':vote,
