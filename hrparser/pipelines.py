@@ -143,6 +143,7 @@ class HrparserPipeline(object):
 
     def __init__(self):
         print('pipeline getMembers')
+
         mps = getDataFromPagerApiDRF(API_URL + 'persons')
         for mp in mps:
             self.members[mp['name_parser']] = mp['id']
@@ -235,6 +236,7 @@ class HrparserPipeline(object):
 
     def process_item(self, item, spider):
         #PEOPLE PARSER
+        return item
         if type(spider) == PeopleSpider:
             # TODO create person parser class (like speech, vote...)
             print("PPEPPEL")

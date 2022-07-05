@@ -4,7 +4,7 @@ from hrparser.settings import API_URL, API_AUTH, API_DATE_FORMAT
 from datetime import datetime, timedelta
 import requests, re, json, pdftotext
 
-PARSE_JUST_NEW_VOTES = False
+PARSE_JUST_NEW_VOTES = True
 FORCE_SET_DOCS = False
 
 options_map = {
@@ -112,14 +112,15 @@ class BallotsParser37(BaseParser37):
             self.parse_time()
             print("")
             if self.is_motion_saved():
-                if PARSE_JUST_NEW_VOTES:
-                    print('This motion is allready parsed')
-                elif self.is_motion_saved_without_ballots():
+                if self.is_motion_saved_without_ballots():
                     self.parse_results()
                     motion_id = self.reference.motions[self.source_data['id']]
                     vote_id = self.reference.votes_without_ballots[motion_id]
                     self.parse_ballots(vote_id)
+                elif PARSE_JUST_NEW_VOTES:
+                    print('This motion is allready parsed')
                 else:
+                    print('Update motion')
                     self.parse_results()
                     self.set_data()
                     self.set_docs()
@@ -358,7 +359,7 @@ class BallotsParser37(BaseParser37):
             data.append(temp)
             members_on_vote.append(member)
 
-        date_f = dt = datetime.strptime(self.reference.votes_dates[vote], '%Y-%m-%dT%H:%M:%S')
+        date_f = datetime.strptime(self.reference.votes_dates[vote], '%Y-%m-%dT%H:%M:%S')
         mps = requests.get(API_URL + 'getMPs/' + date_f.strftime(API_DATE_FORMAT + 'T%H:%M')).json()
         for mp in mps:
             if mp['id'] not in members_on_vote:
